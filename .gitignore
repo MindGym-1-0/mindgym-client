@@ -1,6 +1,15 @@
-node_modules
-.next
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# env files
 .env
 .env.local
-dist
-coverage
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
