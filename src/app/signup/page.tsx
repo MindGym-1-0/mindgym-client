@@ -1,29 +1,15 @@
 ﻿"use client";
 
-import React, { FormEvent, useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "../login/login.module.css";
+import { buildAuthApiUrl } from "../../lib/auth/api";
 
 type SignupResponse = {
   message?: string;
   error?: string;
 };
-
-function buildSignupUrl() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim();
-  const safeBase = apiBase?.replace(/\/+$/, "");
-  const fallbackPath = "/api/auth/signup";
-
-  if (!safeBase) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[auth] NEXT_PUBLIC_API_URL not set, using relative signup path.");
-    }
-    return fallbackPath;
-  }
-
-  return `${safeBase}${fallbackPath}`;
-}
 
 function parseErrorMessage(status: number, payload: unknown) {
   const errorFromPayload =
@@ -41,7 +27,6 @@ function parseErrorMessage(status: number, payload: unknown) {
 }
 
 function validatePasswordRequirements(password: string) {
-  // Basic requirements: min 8 chars, at least one number
   if (password.length < 8) return "Password must be at least 8 characters.";
   if (!/\d/.test(password)) return "Password must include at least one number.";
   return null;
@@ -78,10 +63,18 @@ export default function SignupPage() {
       return;
     }
 
+    let signupUrl: string;
+    try {
+      signupUrl = buildAuthApiUrl("/api/auth/signup");
+    } catch {
+      setError("Authentication is not configured. Please set NEXT_PUBLIC_API_URL.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch(buildSignupUrl(), {
+      const response = await fetch(signupUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -103,10 +96,9 @@ export default function SignupPage() {
         return;
       }
 
-      // On success we expect the backend to set an HTTP-only session cookie.
       router.replace("/onboarding");
       router.refresh();
-    } catch (err) {
+    } catch {
       setError("Network error. Please check your connection and try again.");
       if (process.env.NODE_ENV !== "production") {
         console.info("[auth] Network failure while attempting signup.");
@@ -192,7 +184,7 @@ export default function SignupPage() {
           </form>
 
           <p className={styles.footerText}>
-            Already have an account? {" "}
+            Already have an account?{" "}
             <Link href="/login" className={styles.footerAccent}>
               Sign in
             </Link>

@@ -3,26 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./logout-button.module.css";
+import { buildAuthApiUrl } from "../../lib/auth/api";
 
 type LogoutResponse = {
   message?: string;
   error?: string;
 };
-
-function buildLogoutUrl() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim();
-  const safeBase = apiBase?.replace(/\/+$/, "");
-  const fallbackPath = "/api/auth/logout";
-
-  if (!safeBase) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[auth] NEXT_PUBLIC_API_URL not set, using relative logout path.");
-    }
-    return fallbackPath;
-  }
-
-  return `${safeBase}${fallbackPath}`;
-}
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -32,10 +18,19 @@ export default function LogoutButton() {
   async function handleLogout() {
     if (isLoading) return;
     setError(null);
+
+    let logoutUrl: string;
+    try {
+      logoutUrl = buildAuthApiUrl("/api/auth/logout");
+    } catch {
+      setError("Authentication is not configured. Please set NEXT_PUBLIC_API_URL.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch(buildLogoutUrl(), {
+      const response = await fetch(logoutUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

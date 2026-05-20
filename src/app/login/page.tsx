@@ -4,26 +4,12 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
+import { buildAuthApiUrl } from "../../lib/auth/api";
 
 type LoginResponse = {
   message?: string;
   error?: string;
 };
-
-function buildLoginUrl() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL?.trim();
-  const safeBase = apiBase?.replace(/\/+$/, "");
-  const fallbackPath = "/api/auth/login";
-
-  if (!safeBase) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[auth] NEXT_PUBLIC_API_URL not set, using relative login path.");
-    }
-    return fallbackPath;
-  }
-
-  return `${safeBase}${fallbackPath}`;
-}
 
 function parseErrorMessage(status: number, payload: unknown) {
   const errorFromPayload =
@@ -58,10 +44,18 @@ export default function LoginPage() {
       return;
     }
 
+    let loginUrl: string;
+    try {
+      loginUrl = buildAuthApiUrl("/api/auth/login");
+    } catch {
+      setError("Authentication is not configured. Please set NEXT_PUBLIC_API_URL.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch(buildLoginUrl(), {
+      const response = await fetch(loginUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -102,7 +96,7 @@ export default function LoginPage() {
       <section className={styles.leftPanel}>
         <div className={styles.formWrap}>
           <p className={styles.brand}>MindGym</p>
-          <h1 className={styles.title}>Welcome back, Claire.</h1>
+          <h1 className={styles.title}>Welcome back.</h1>
           <p className={styles.subtitle}>Start your mental journey</p>
 
           <button type="button" disabled className={styles.socialButton}>
