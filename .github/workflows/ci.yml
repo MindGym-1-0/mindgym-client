@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, beta]
 
 jobs:
   check:
@@ -26,3 +26,13 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+  deploy-to-production:
+    needs: check
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'main'
+    environment: production
+
+    steps:
+      - name: Approved for production
+        run: echo "Manual approval granted, Railway will deploy automatically"
