@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Step1JobRole } from "@/components/Step1JobRole";
 import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
+import { Step4Plan } from "@/components/Step4PlanProps"; 
 import { mockSubmitOnboarding } from "@/lib/mockAPi";
 
 interface StepConfig {
@@ -14,8 +15,9 @@ interface StepConfig {
 
 const STEP_CONFIG: Record<number, StepConfig> = {
   1: { title: "Dream direction", totalSteps: 4 },
-  2: { title: "Hiring funnel", totalSteps: 5 },
+  2: { title: "Hiring funnel", totalSteps: 4 },
   3: { title: "Emotional challenge", totalSteps: 4 },
+  4: { title: "Your plan", totalSteps: 4 }, 
 };
 
 export default function OnboardingWizard() {
@@ -34,11 +36,13 @@ export default function OnboardingWizard() {
     if (currentStep === 1) return formData.jobRole.trim() !== "";
     if (currentStep === 2) return formData.jobStage !== "";
     if (currentStep === 3) return formData.mood.trim() !== "";
+    if (currentStep === 4) return true; 
     return false;
   };
 
   const handleNext = () => {
-    if (canProceed() && currentStep < 3) {
+    // Increased max step threshold to 4
+    if (canProceed() && currentStep < 4) {
       setCurrentStep(currentStep + 1);
       setError("");
     }
@@ -52,7 +56,7 @@ export default function OnboardingWizard() {
   };
 
   const handleSubmit = async () => {
-    if (!canProceed()) return;
+    if (!canProceed() || isLoading) return;
 
     setIsLoading(true);
     setError("");
@@ -89,6 +93,13 @@ export default function OnboardingWizard() {
             onChange={(value) => setFormData({ ...formData, mood: value })}
           />
         );
+      case 4:
+        return (
+          <Step4Plan 
+            formData={formData} /* <-- THIS IS THE CRITICAL LINE */
+            onComplete={handleSubmit} 
+          />
+        );
       default:
         return null;
     }
@@ -116,7 +127,8 @@ export default function OnboardingWizard() {
         <div
           className="h-full bg-teal-600 transition-all duration-300"
           style={{
-            width: `${((currentStep - 1) / 2) * 100}%`,
+            // Updated to divide by 3 to reach 100% at step 4
+            width: `${((currentStep - 1) / 3) * 100}%`,
           }}
         />
       </div>
@@ -135,20 +147,21 @@ export default function OnboardingWizard() {
           </div>
         )}
 
-        <div className="flex justify-between items-center mt-lg pt-base border-t border-border">
-          <button
-            onClick={handleBack}
-            disabled={currentStep === 1 || isLoading}
-            className={`px-base py-2 rounded-lg font-sans text-b2 transition-all duration-200 ${
-              currentStep === 1
-                ? "text-ink-30 cursor-not-allowed"
-                : "text-ink hover:bg-background"
-            }`}
-          >
-            ← Back
-          </button>
+        {/* Footer Navigation (Hidden on Step 4) */}
+        {currentStep < 4 && (
+          <div className="flex justify-between items-center mt-lg pt-base border-t border-border">
+            <button
+              onClick={handleBack}
+              disabled={currentStep === 1 || isLoading}
+              className={`px-base py-2 rounded-lg font-sans text-b2 transition-all duration-200 ${
+                currentStep === 1
+                  ? "text-ink-30 cursor-not-allowed"
+                  : "text-ink hover:bg-background"
+              }`}
+            >
+              ← Back
+            </button>
 
-          {currentStep < 3 ? (
             <button
               onClick={handleNext}
               disabled={!canProceed()}
@@ -160,20 +173,8 @@ export default function OnboardingWizard() {
             >
               Continue
             </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={!canProceed() || isLoading}
-              className={`px-lg py-2 rounded-lg font-sans text-b2 font-semibold transition-all duration-200 min-w-[140px] ${
-                canProceed() && !isLoading
-                  ? "bg-teal-600 text-surface hover:bg-teal-900 shadow-sm"
-                  : "bg-border text-ink-30 cursor-not-allowed"
-              }`}
-            >
-              {isLoading ? "Saving..." : "Complete"}
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
