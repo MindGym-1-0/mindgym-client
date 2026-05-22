@@ -41,6 +41,7 @@ const navItems = [
         icon: LayoutDashboard,
       },
 
+      // KEEPING COACH & INTERVIEWS SAME
       {
         label: "Coach & Interviews",
         href: "/coach",
@@ -71,10 +72,34 @@ const navItems = [
         ],
       },
 
+      // UPDATED SESSIONS DROPDOWN
       {
         label: "Sessions",
         href: "/sessions",
         icon: BookOpen,
+
+        children: [
+          {
+            label: "Saved Sessions",
+            href: "/sessions",
+          },
+          {
+            label: "Session History",
+            href: "/sessions/history",
+          },
+          {
+            label: "Setup Flow",
+            href: "/sessions/setup/emotions",
+          },
+          {
+            label: "Active Session",
+            href: "/sessions/active",
+          },
+          {
+            label: "Feedback",
+            href: "/sessions/feedback",
+          },
+        ],
       },
 
       {
@@ -101,9 +126,10 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const [openDropdown, setOpenDropdown] = useState<string | null>(
-    "Coach & Interviews"
-  );
+  const [openDropdown, setOpenDropdown] =
+    useState<string | null>(
+      "Coach & Interviews"
+    );
 
   return (
     <aside className="w-[260px] border-r border-gray-200 bg-[#F8F8F6] px-5 py-6 flex flex-col min-h-screen">
@@ -122,7 +148,10 @@ export default function Sidebar() {
       {/* Navigation */}
       <div className="flex-1">
         {navItems.map((section) => (
-          <div key={section.section} className="mb-8">
+          <div
+            key={section.section}
+            className="mb-8"
+          >
             
             {/* Section Title */}
             <p className="mb-3 text-xs font-semibold tracking-widest text-gray-400">
@@ -130,103 +159,123 @@ export default function Sidebar() {
             </p>
 
             <div className="space-y-2">
-              {section.items.map((item: NavItem) => {
-                const Icon = item.icon;
+              {section.items.map(
+                (item: NavItem) => {
+                  const Icon = item.icon;
 
-                const isActive =
-                  pathname === item.href ||
-                  item.children?.some(
-                    (child) => pathname === child.href
-                  );
+                  const isActive =
+                    pathname === item.href ||
+                    item.children?.some(
+                      (child) =>
+                        pathname ===
+                        child.href
+                    );
 
-                const isOpen = openDropdown === item.label;
+                  const isOpen =
+                    openDropdown ===
+                    item.label;
 
-                return (
-                  <div key={item.label}>
-                    
-                    {/* Main Nav Item */}
-                    {item.children ? (
-                      <button
-                        onClick={() =>
-                          setOpenDropdown(
-                            isOpen ? null : item.label
-                          )
-                        }
-                        className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
-                          isActive
-                            ? "bg-[#DDF4EE] text-[#0C6B58]"
-                            : "text-gray-500 hover:bg-gray-100"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon size={18} />
+                  return (
+                    <div key={item.label}>
+                      
+                      {/* Main Nav Item */}
+                      {item.children ? (
+                        <button
+                          onClick={() =>
+                            setOpenDropdown(
+                              isOpen
+                                ? null
+                                : item.label
+                            )
+                          }
+                          className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
+                            isActive
+                              ? "bg-[#DDF4EE] text-[#0C6B58]"
+                              : "text-gray-500 hover:bg-gray-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon size={18} />
 
-                          <span className="text-sm font-medium">
-                            {item.label}
-                          </span>
-                        </div>
+                            <span className="text-sm font-medium">
+                              {item.label}
+                            </span>
+                          </div>
 
-                        <div className="flex items-center gap-2">
-                          {item.notification && !isActive && (
-                            <div className="h-2 w-2 rounded-full bg-red-500" />
-                          )}
+                          <div className="flex items-center gap-2">
+                            {item.notification &&
+                              !isActive && (
+                                <div className="h-2 w-2 rounded-full bg-red-500" />
+                              )}
 
-                          {isOpen ? (
-                            <ChevronUp size={16} />
-                          ) : (
-                            <ChevronDown size={16} />
-                          )}
-                        </div>
-                      </button>
-                    ) : (
-                      <Link
-                        href={item.href}
-                        className={`flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
-                          isActive
-                            ? "bg-[#DDF4EE] text-[#0C6B58]"
-                            : "text-gray-500 hover:bg-gray-100"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon size={18} />
+                            {isOpen ? (
+                              <ChevronUp size={16} />
+                            ) : (
+                              <ChevronDown size={16} />
+                            )}
+                          </div>
+                        </button>
+                      ) : (
+                        <Link
+                          href={item.href}
+                          className={`flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
+                            isActive
+                              ? "bg-[#DDF4EE] text-[#0C6B58]"
+                              : "text-gray-500 hover:bg-gray-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon size={18} />
 
-                          <span className="text-sm font-medium">
-                            {item.label}
-                          </span>
-                        </div>
+                            <span className="text-sm font-medium">
+                              {item.label}
+                            </span>
+                          </div>
 
-                        {item.notification && !isActive && (
-                          <div className="h-2 w-2 rounded-full bg-red-500" />
+                          {item.notification &&
+                            !isActive && (
+                              <div className="h-2 w-2 rounded-full bg-red-500" />
+                            )}
+                        </Link>
+                      )}
+
+                      {/* Dropdown Children */}
+                      {item.children &&
+                        isOpen && (
+                          <div className="ml-8 mt-2 flex flex-col gap-1 border-l border-gray-200 pl-4">
+                            {item.children.map(
+                              (child) => {
+                                const childActive =
+                                  pathname ===
+                                  child.href;
+
+                                return (
+                                  <Link
+                                    key={
+                                      child.href
+                                    }
+                                    href={
+                                      child.href
+                                    }
+                                    className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                                      childActive
+                                        ? "bg-[#DDF4EE] text-[#0C6B58] font-medium"
+                                        : "text-gray-500 hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    {
+                                      child.label
+                                    }
+                                  </Link>
+                                );
+                              }
+                            )}
+                          </div>
                         )}
-                      </Link>
-                    )}
-
-                    {/* Dropdown Children */}
-                    {item.children && isOpen && (
-                      <div className="ml-8 mt-2 flex flex-col gap-1 border-l border-gray-200 pl-4">
-                        {item.children.map((child) => {
-                          const childActive =
-                            pathname === child.href;
-
-                          return (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              className={`rounded-lg px-3 py-2 text-sm transition-all ${
-                                childActive
-                                  ? "bg-[#DDF4EE] text-[#0C6B58] font-medium"
-                                  : "text-gray-500 hover:bg-gray-100"
-                              }`}
-                            >
-                              {child.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                }
+              )}
             </div>
           </div>
         ))}
