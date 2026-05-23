@@ -97,7 +97,7 @@ export default function InsightsPage() {
         </p>
 
         <h2 className="mt-4 text-xl font-semibold text-blue-700">
-          You're getting recruiter calls but
+          You&apos;re getting recruiter calls but
           progress slows at the interview stage.
         </h2>
 
