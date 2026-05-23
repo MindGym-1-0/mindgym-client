@@ -1,4 +1,4 @@
-import LogoutButton from "../../components/auth/logout-button";
+import LogoutButton from "../../../components/auth/logout-button";
 
 // src/app/dashboard/page.tsx
 export default function DashboardPage() {
