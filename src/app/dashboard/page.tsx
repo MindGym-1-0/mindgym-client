@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
         <div className="mt-6 flex gap-4">
           <button className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black">
-            Prepare with Maya ->
+            Prepare with Maya {"->"}
           </button>
 
           <button className="rounded-xl border border-white/30 px-5 py-3 text-sm">View details</button>
