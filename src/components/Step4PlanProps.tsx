@@ -59,7 +59,7 @@ export function Step4Plan({ formData, onComplete }: Step4PlanProps) {
       </h1>
       </h1>
       <p className="text-[14px] leading-[18px] font-sans text-[#686460] mb-[32px]">
-        Here's what MindGym will focus on for you.
+        Here&rsquo;s what MindGym will focus on for you.
       </p>
 
       {/* Card Container */}
