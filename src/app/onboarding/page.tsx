@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Step1JobRole } from "@/components/Step1JobRole";
 import { Step2JobStage } from "@/components/Step2JobStage";
