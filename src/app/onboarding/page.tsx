@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Image from "public/mindgym-icon.png";
 import { Step1JobRole } from "@/components/Step1JobRole";
 import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
