@@ -40,7 +40,7 @@ export function Step3MoodSelection({ value, onChange }: Step3MoodSelectionProps)
   return (
     <div className="space-y-lg">
       <div>
-        <h2 className="text-h2 font-display text-ink mb-sm">What's been the hardest part emotionally?</h2>
+       <h2 className="text-h2 font-display text-ink mb-sm">What&rsquo;s been the hardest part emotionally?</h2>
         <p className="text-b2 text-ink-60">This personalises your coaching sessions.</p>
       </div>
 
