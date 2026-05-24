@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import AuthSidebar from '@/components/AuthSidebar';
+import AuthSidebar from 'components/AuthSidebar';
 
 export default function LogInPage() {
   const [formData, setFormData] = useState({
