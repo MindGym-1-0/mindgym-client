@@ -100,4 +100,5 @@ export function Step4Plan({ formData, onComplete }: Step4PlanProps) {
     </p>
 
   </div>
-);
+  );
+}
