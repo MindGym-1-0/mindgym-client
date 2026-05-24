@@ -7,7 +7,6 @@ import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
 import { Step4Plan } from "@/components/Step4PlanProps"; 
 import { mockSubmitOnboarding } from "@/lib/mockAPi";
-import image from "/mindgym-icon.png";
 
 interface StepConfig {
   title: string;
