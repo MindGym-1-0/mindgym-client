@@ -55,7 +55,8 @@ export function Step4Plan({ formData, onComplete }: Step4PlanProps) {
 
       {/* Header text */}
       <h1 className="text-[28px] leading-[36px] font-display text-[#171412] mb-2">
-        You're already further along than you feel.
+        You&rsquo;re already further along than you feel.
+      </h1>
       </h1>
       <p className="text-[14px] leading-[18px] font-sans text-[#686460] mb-[32px]">
         Here's what MindGym will focus on for you.
