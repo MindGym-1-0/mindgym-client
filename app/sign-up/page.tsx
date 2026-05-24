@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import AuthSidebar from '@/components/AuthSidebar';
+import AuthSidebar from 'components/AuthSidebar';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
