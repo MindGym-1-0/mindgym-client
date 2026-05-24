@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "public/mindgym-icon.png";
 import { Step1JobRole } from "@/components/Step1JobRole";
 import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
@@ -111,7 +112,13 @@ export default function OnboardingWizard() {
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-base py-base flex justify-between items-center">
           <div className="flex items-center gap-2">
-             <Image src="/mindgym-icon.png" alt="MindGym Logo" width={128} height={128} className="w-32 h-32" />
+             <Image 
+                src="/mindgym-icon.png" 
+                alt="MindGym Logo" 
+                width={40}
+                height={40}
+                className="w-10 h-10"
+              />
             <span className="font-display text-h4 text-ink">MindGym</span>
           </div>
           <span className="text-b3 text-ink-60">
