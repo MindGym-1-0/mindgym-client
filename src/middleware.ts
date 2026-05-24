@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const AUTH_ROUTES = new Set(["/login", "/signup", "/auth/callback"]);
+const AUTH_ROUTES = new Set(["/login", "/sign-up", "/auth/callback"]);
 const PROTECTED_ROUTES = ["/dashboard", "/onboarding"];
 
 function isProtectedRoute(pathname: string) {
