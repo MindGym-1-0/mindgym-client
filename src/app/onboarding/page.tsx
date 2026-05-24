@@ -7,6 +7,7 @@ import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
 import { Step4Plan } from "@/components/Step4PlanProps"; 
 import { mockSubmitOnboarding } from "@/lib/mockAPi";
+import image from "/mindgym-icon.png";
 
 interface StepConfig {
   title: string;
@@ -111,11 +112,7 @@ export default function OnboardingWizard() {
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-base py-base flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img 
-              src="/mindgym-icon.png" 
-              alt="MindGym Logo" 
-              className="w-10 h-10"
-            />
+             <Image src="/mindgym-icon.png" alt="MindGym Logo" width={128} height={128} className="w-32 h-32" />
             <span className="font-display text-h4 text-ink">MindGym</span>
           </div>
           <span className="text-b3 text-ink-60">
