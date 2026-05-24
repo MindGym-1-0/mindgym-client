@@ -34,6 +34,7 @@ type NavItem = {
 const navItems = [
   {
     section: "PREPARE",
+
     items: [
       {
         label: "Dashboard",
@@ -41,7 +42,7 @@ const navItems = [
         icon: LayoutDashboard,
       },
 
-      // KEEPING COACH & INTERVIEWS SAME
+      // COACH & INTERVIEWS DROPDOWN
       {
         label: "Coach & Interviews",
         href: "/coach",
@@ -53,18 +54,22 @@ const navItems = [
             label: "Coach",
             href: "/coach",
           },
+
           {
             label: "Coach Prep",
             href: "/coach/prep",
           },
+
           {
             label: "My Interviews",
             href: "/coach/interviews",
           },
+
           {
             label: "Interview Checklist",
             href: "/coach/checklist",
           },
+
           {
             label: "Post Interview Check-in",
             href: "/coach/interview-checkin",
@@ -72,7 +77,7 @@ const navItems = [
         ],
       },
 
-      // UPDATED SESSIONS DROPDOWN
+      // SESSIONS DROPDOWN
       {
         label: "Sessions",
         href: "/sessions",
@@ -83,18 +88,22 @@ const navItems = [
             label: "Saved Sessions",
             href: "/sessions",
           },
+
           {
             label: "Session History",
             href: "/sessions/history",
           },
+
           {
             label: "Setup Flow",
             href: "/sessions/setup/emotions",
           },
+
           {
             label: "Active Session",
             href: "/sessions/active",
           },
+
           {
             label: "Feedback",
             href: "/sessions/feedback",
@@ -102,10 +111,23 @@ const navItems = [
         ],
       },
 
+      // PROGRESS DROPDOWN
       {
         label: "Insight & Progress",
         href: "/progress",
         icon: BarChart3,
+
+        children: [
+          {
+            label: "Progress",
+            href: "/progress",
+          },
+
+          {
+            label: "Insights",
+            href: "/progress/insights",
+          },
+        ],
       },
     ],
   },
@@ -153,7 +175,7 @@ export default function Sidebar() {
             className="mb-8"
           >
             
-            {/* Section Title */}
+            {/* Section Heading */}
             <p className="mb-3 text-xs font-semibold tracking-widest text-gray-400">
               {section.section}
             </p>
@@ -178,44 +200,82 @@ export default function Sidebar() {
                   return (
                     <div key={item.label}>
                       
-                      {/* Main Nav Item */}
+                      {/* DROPDOWN ITEMS */}
                       {item.children ? (
-                        <button
-                          onClick={() =>
-                            setOpenDropdown(
-                              isOpen
-                                ? null
-                                : item.label
-                            )
-                          }
-                          className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
-                            isActive
-                              ? "bg-[#DDF4EE] text-[#0C6B58]"
-                              : "text-gray-500 hover:bg-gray-100"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon size={18} />
+                        <>
+                          <button
+                            onClick={() =>
+                              setOpenDropdown(
+                                isOpen
+                                  ? null
+                                  : item.label
+                              )
+                            }
+                            className={`w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
+                              isActive
+                                ? "bg-[#DDF4EE] text-[#0C6B58]"
+                                : "text-gray-500 hover:bg-gray-100"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Icon size={18} />
 
-                            <span className="text-sm font-medium">
-                              {item.label}
-                            </span>
-                          </div>
+                              <span className="text-sm font-medium">
+                                {item.label}
+                              </span>
+                            </div>
 
-                          <div className="flex items-center gap-2">
-                            {item.notification &&
-                              !isActive && (
-                                <div className="h-2 w-2 rounded-full bg-red-500" />
+                            <div className="flex items-center gap-2">
+                              
+                              {item.notification &&
+                                !isActive && (
+                                  <div className="h-2 w-2 rounded-full bg-red-500" />
+                                )}
+
+                              {isOpen ? (
+                                <ChevronUp size={16} />
+                              ) : (
+                                <ChevronDown size={16} />
                               )}
+                            </div>
+                          </button>
 
-                            {isOpen ? (
-                              <ChevronUp size={16} />
-                            ) : (
-                              <ChevronDown size={16} />
-                            )}
-                          </div>
-                        </button>
+                          {/* CHILD LINKS */}
+                          {isOpen && (
+                            <div className="ml-8 mt-2 flex flex-col gap-1 border-l border-gray-200 pl-4">
+                              
+                              {item.children.map(
+                                (child) => {
+                                  const childActive =
+                                    pathname ===
+                                    child.href;
+
+                                  return (
+                                    <Link
+                                      key={
+                                        child.href
+                                      }
+                                      href={
+                                        child.href
+                                      }
+                                      className={`rounded-lg px-3 py-2 text-sm transition-all ${
+                                        childActive
+                                          ? "bg-[#DDF4EE] text-[#0C6B58] font-medium"
+                                          : "text-gray-500 hover:bg-gray-100"
+                                      }`}
+                                    >
+                                      {
+                                        child.label
+                                      }
+                                    </Link>
+                                  );
+                                }
+                              )}
+                            </div>
+                          )}
+                        </>
                       ) : (
+                        /* NORMAL LINKS */
                         <Link
                           href={item.href}
                           className={`flex items-center justify-between rounded-xl px-4 py-3 transition-all ${
@@ -238,40 +298,6 @@ export default function Sidebar() {
                             )}
                         </Link>
                       )}
-
-                      {/* Dropdown Children */}
-                      {item.children &&
-                        isOpen && (
-                          <div className="ml-8 mt-2 flex flex-col gap-1 border-l border-gray-200 pl-4">
-                            {item.children.map(
-                              (child) => {
-                                const childActive =
-                                  pathname ===
-                                  child.href;
-
-                                return (
-                                  <Link
-                                    key={
-                                      child.href
-                                    }
-                                    href={
-                                      child.href
-                                    }
-                                    className={`rounded-lg px-3 py-2 text-sm transition-all ${
-                                      childActive
-                                        ? "bg-[#DDF4EE] text-[#0C6B58] font-medium"
-                                        : "text-gray-500 hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    {
-                                      child.label
-                                    }
-                                  </Link>
-                                );
-                              }
-                            )}
-                          </div>
-                        )}
                     </div>
                   );
                 }
@@ -281,7 +307,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      {/* Bottom Links */}
+      {/* Bottom Section */}
       <div className="border-t border-gray-200 pt-6 space-y-2">
         
         <Link
