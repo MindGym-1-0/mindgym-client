@@ -153,7 +153,7 @@ export default function LoginPage() {
 
           <p className={styles.footerText}>
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className={styles.footerAccent}>
+            <Link href="/sign-up" className={styles.footerAccent}>
               Create one
             </Link>
           </p>
