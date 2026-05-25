@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Step1JobRole } from "@/components/Step1JobRole";
@@ -111,10 +112,11 @@ export default function OnboardingWizard() {
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-base py-base flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img 
+            <Image
               src="/mindgym-icon.png" 
               alt="MindGym Logo" 
-              className="w-10 h-10"
+              width={800}
+              height={600}
             />
             <span className="font-display text-h4 text-ink">MindGym</span>
           </div>
