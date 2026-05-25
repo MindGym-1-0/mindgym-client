@@ -3,8 +3,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "lint": "next lint"
   },
   "devDependencies": {
     "@types/next": "^8.0.7",
@@ -18,9 +17,6 @@
   "dependencies": {
     "next": "^16.2.6",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "lucide-react": "latest",
-    "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest"
+    "react-dom": "^19.2.6"
   }
 }
