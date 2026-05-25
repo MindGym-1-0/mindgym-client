@@ -1,4 +1,6 @@
 import nextPlugin from '@next/eslint-plugin-next';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
@@ -7,10 +9,14 @@ export default [
   {
     files: ['src/**/*.{js,jsx,ts,tsx}'],
     plugins: {
-      '@next/next': nextPlugin, 
+      '@next/next': nextPlugin,
+      '@typescript-eslint': tsPlugin,
     },
     languageOptions: {
+      parser: tsParser,
       parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
         },
@@ -19,6 +25,7 @@ export default [
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,
+      ...tsPlugin.configs.recommended.rules,
     },
   },
 ];
