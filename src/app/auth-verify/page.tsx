@@ -7,7 +7,6 @@ import Link from 'next/link';
 export default function AuthVerifyPage() {
   const [code, setCode] = useState(['', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(4 * 60); // 4 minutes
-  const [isResent, setIsResent] = useState(false);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
