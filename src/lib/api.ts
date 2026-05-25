@@ -30,7 +30,7 @@ export async function exchangeGoogleCode(code: string): Promise<AuthResponse> {
 /**
  * Verify JWT token with backend
  */
-export async function verifyToken(token: string): Promise<any> {
+export async function verifyToken(token: string): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/verify`, {
     method: 'POST',
     headers: {
