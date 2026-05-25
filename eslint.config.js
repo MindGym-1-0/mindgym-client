@@ -1,4 +1,4 @@
-import nextPlugin from 'eslint-plugin-next';
+import nextPlugin from '@next/eslint-plugin-next';
 
 export default [
   {
@@ -8,6 +8,13 @@ export default [
     files: ['src/**/*.{js,jsx,ts,tsx}'],
     plugins: {
       next: nextPlugin,
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
     },
     rules: {
       ...nextPlugin.configs.recommended.rules,
