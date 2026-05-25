@@ -7,7 +7,7 @@ export default [
   {
     files: ['src/**/*.{js,jsx,ts,tsx}'],
     plugins: {
-      next: nextPlugin,
+      '@next/next': nextPlugin, 
     },
     languageOptions: {
       parserOptions: {
