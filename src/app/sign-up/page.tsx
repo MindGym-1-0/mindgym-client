@@ -1,13 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthSidebar from '@/components/AuthSidebar';
 import { getGoogleAuthUrl } from '@/lib/api';
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
