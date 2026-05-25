@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import AuthSidebar from '@/components/AuthSidebar';
 import { getGoogleAuthUrl } from '@/lib/api';
 
