@@ -48,57 +48,57 @@ export function Step4Plan({ formData, onComplete }: Step4PlanProps) {
   const roleTag = formData.jobRole && formData.jobRole !== "Open to options" ? formData.jobRole : "Career pivot";
 
   return (
-  <div className="flex flex-col items-center text-center max-w-2xl mx-auto w-full">
-    
-    {/* Icon */}
-    <div className="text-2xl mb-4">✨</div>
-
-    {/* Header text */}
-    <h1 className="text-[28px] leading-[36px] font-display text-[#171412] mb-2">
-      You&rsquo;re already further along than you feel.
-    </h1>
-    <p className="text-[14px] leading-[18px] font-sans text-[#686460] mb-[32px]">
-      Here&rsquo;s what MindGym will focus on for you.
-    </p>
-
-    {/* Card Container */}
-    <div className="bg-[#FFFFFF] border border-[#E9E9E7] rounded-xl p-[24px] w-full text-left shadow-sm mb-[32px]">
+    <div className="flex flex-col items-center text-center max-w-2xl mx-auto w-full">
       
-      {/* Dynamic Quote */}
-      <p className="text-[16px] leading-[24px] font-display text-[#171412] font-medium italic mb-[24px]">
-        {dynamicQuote}
+      {/* Icon */}
+      <div className="text-2xl mb-4">✨</div>
+
+      {/* Header text */}
+      <h1 className="text-[28px] leading-[36px] font-display text-[#171412] mb-2">
+        You're already further along than you feel.
+      </h1>
+      <p className="text-[14px] leading-[18px] font-sans text-[#686460] mb-[32px]">
+        Here's what MindGym will focus on for you.
       </p>
 
-      {/* Tags Row */}
-      <div className="flex flex-wrap gap-[8px] pt-[24px] border-t border-[#E9E9E7]">
-        {/* Stage Tag */}
-        <span className="px-[8px] py-[4px] bg-[#DDF2EE] text-[#126658] rounded text-[10px] leading-[14px] font-sans font-bold">
-          {stageTag}
-        </span>
-        {/* Mood Tag */}
-        <span className="px-[8px] py-[4px] bg-[#FFF3DD] text-[#C97A15] rounded text-[10px] leading-[14px] font-sans font-bold">
-          {moodTag}
-        </span>
-        {/* Role/Direction Tag */}
-        <span className="px-[8px] py-[4px] bg-[#EDF3FC] text-[#4A6FA5] rounded text-[10px] leading-[14px] font-sans font-bold line-clamp-1 max-w-[200px]">
-          {roleTag}
-        </span>
+      {/* Card Container */}
+      <div className="bg-[#FFFFFF] border border-[#E9E9E7] rounded-xl p-[24px] w-full text-left shadow-sm mb-[32px]">
+        
+        {/* Dynamic Quote */}
+        <p className="text-[16px] leading-[24px] font-display text-[#171412] font-medium italic mb-[24px]">
+          {dynamicQuote}
+        </p>
+
+        {/* Tags Row */}
+        <div className="flex flex-wrap gap-[8px] pt-[24px] border-t border-[#E9E9E7]">
+          {/* Stage Tag */}
+          <span className="px-[8px] py-[4px] bg-[#DDF2EE] text-[#126658] rounded text-[10px] leading-[14px] font-sans font-bold">
+            {stageTag}
+          </span>
+          {/* Mood Tag */}
+          <span className="px-[8px] py-[4px] bg-[#FFF3DD] text-[#C97A15] rounded text-[10px] leading-[14px] font-sans font-bold">
+            {moodTag}
+          </span>
+          {/* Role/Direction Tag */}
+          <span className="px-[8px] py-[4px] bg-[#EDF3FC] text-[#4A6FA5] rounded text-[10px] leading-[14px] font-sans font-bold line-clamp-1 max-w-[200px]">
+            {roleTag}
+          </span>
+        </div>
       </div>
+
+      {/* Call to Action */}
+      <button
+        onClick={onComplete}
+        className="px-[16px] py-[12px] bg-[#126658] text-[#FFFFFF] rounded-lg text-[14px] font-sans font-semibold flex items-center justify-center gap-2 hover:bg-[#0D2B26] transition-colors mb-[16px]"
+      >
+        Enter Dashboard <span aria-hidden="true">→</span>
+      </button>
+
+      {/* Footer Text */}
+      <p className="text-[12px] leading-[16px] font-sans text-[#B0AAA6]">
+        You can update these at any time in Settings.
+      </p>
+
     </div>
-
-    {/* Call to Action */}
-    <button
-      onClick={onComplete}
-      className="px-[16px] py-[12px] bg-[#126658] text-[#FFFFFF] rounded-lg text-[14px] font-sans font-semibold flex items-center justify-center gap-2 hover:bg-[#0D2B26] transition-colors mb-[16px]"
-    >
-      Enter Dashboard <span aria-hidden="true">→</span>
-    </button>
-
-    {/* Footer Text */}
-    <p className="text-[12px] leading-[16px] font-sans text-[#B0AAA6]">
-      You can update these at any time in Settings.
-    </p>
-
-  </div>
   );
 }

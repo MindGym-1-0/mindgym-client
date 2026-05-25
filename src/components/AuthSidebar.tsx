@@ -18,7 +18,7 @@ export default function AuthSidebar({ message, subtitle }: AuthSidebarProps) {
         
         {/* Message */}
         <p className="text-2xl font-serif text-white italic mb-6">
-          &ldquo;{message}&rdquo;
+          "{message}"
         </p>
         
         {/* Subtitle */}
