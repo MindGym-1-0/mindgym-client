@@ -115,8 +115,8 @@ export default function OnboardingWizard() {
             <Image
               src="/mindgym-icon.png" 
               alt="MindGym Logo" 
-              width={800}
-              height={600}
+              width={40}
+              height={40}
             />
             <span className="font-display text-h4 text-ink">MindGym</span>
           </div>
