@@ -5,7 +5,7 @@ import AuthSidebar from '@/components/AuthSidebar';
 import Link from 'next/link';
 
 export default function AuthVerifyPage() {
-  const [code, setCode] = useState(['', '', '', '', '']);
+  const [code, setCode] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(4 * 60); // 4 minutes
 
   useEffect(() => {
