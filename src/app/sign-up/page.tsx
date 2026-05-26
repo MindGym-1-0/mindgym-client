@@ -108,7 +108,7 @@ export default function SignUpPage() {
                 />
               </div>
               <div>
-                <label className="text-b4 text-ink-60 block mb-2">First name</label>
+                <label className="text-b4 text-ink-60 block mb-2">Last name</label>
                 <input
                   type="text"
                   name="lastName"
