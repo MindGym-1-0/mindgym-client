@@ -1,90 +1,136 @@
-// src/app/(main)/coach/page.tsx
-
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getCoachHome } from "../../../lib/coach/api";
+import type { CoachHomeResponse, RecommendedSession } from "../../../lib/coach/types";
 
-const sessions = [
+const FALLBACK_SESSIONS: RecommendedSession[] = [
   {
     title: "Pre-interview calm reset",
-    subtitle: "8 min • Breathing + visualization",
-    emoji: "🧘",
+    duration_mins: 8,
+    focus: "Breathing + visualization",
+    session_type: "pre_interview_calm_reset"
   },
   {
     title: "Confidence builder",
-    subtitle: "10 min • Maya-guided",
-    emoji: "💔",
+    duration_mins: 10,
+    focus: "Grounding + anchor",
+    session_type: "confidence_builder"
   },
   {
     title: "Think clearly under pressure",
-    subtitle: "10 min • Focus + mental clarity",
-    emoji: "🧠",
-  },
+    duration_mins: 10,
+    focus: "Focus + mental clarity",
+    session_type: "think_clearly_under_pressure"
+  }
 ];
+
+const FALLBACK_INSIGHTS = [
+  "Strongest area: motivation and persistence",
+  "Growth area: thinking clearly under pressure",
+  "Pattern: anxiety spikes the night before interviews",
+  "Morning sessions produce higher confidence lifts"
+];
+
+const FALLBACK_GREETING =
+  "Hi Claire - your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared.";
+
+const FALLBACK_SUGGESTION = {
+  text: "A short breathing session tonight can improve tomorrow's composure.",
+  time_suggestion: "9:00 PM"
+};
 
 export default function CoachPage() {
   const router = useRouter();
 
+  const [coachHome, setCoachHome] = useState<CoachHomeResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadCoachHome() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await getCoachHome();
+        if (!isActive) return;
+        setCoachHome(data);
+      } catch {
+        if (!isActive) return;
+        setError("We couldn't load coach updates right now. Showing your latest saved guidance.");
+      } finally {
+        if (!isActive) return;
+        setIsLoading(false);
+      }
+    }
+
+    loadCoachHome();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const recommendedSessions = useMemo(() => {
+    if (coachHome?.recommended_sessions?.length) return coachHome.recommended_sessions;
+    return FALLBACK_SESSIONS;
+  }, [coachHome]);
+
+  const recommendedToday = useMemo(() => {
+    if (coachHome?.recommended_today?.length) return coachHome.recommended_today;
+    return FALLBACK_INSIGHTS;
+  }, [coachHome]);
+
+  const mayaGreeting = coachHome?.maya_greeting || FALLBACK_GREETING;
+  const suggestionText = coachHome?.maya_suggests?.text || FALLBACK_SUGGESTION.text;
+  const suggestionTime = coachHome?.maya_suggests?.time_suggestion || FALLBACK_SUGGESTION.time_suggestion;
+
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-        <h1 className="text-2xl font-semibold text-[#1D1D1D]">
-          Maya • your coach
-        </h1>
-        <p className="text-gray-500 mt-1">Active • Session 1</p>
+      <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
+        <h1 className="text-2xl font-semibold text-[#1D1D1D]">Maya - your coach</h1>
+        <p className="mt-1 text-gray-500">{isLoading ? "Loading your coach updates..." : "Active - Session 1"}</p>
       </div>
 
-      {/* Main Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm">
+      {error ? (
+        <div className="mb-6 rounded-xl border border-[#F2C879] bg-[#FFF5E6] px-4 py-3 text-sm text-[#8B5E00]">{error}</div>
+      ) : null}
+
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2">
           <div className="flex gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#0D7C66] text-white flex items-center justify-center">
-              M
-            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0D7C66] text-white">M</div>
 
             <div>
-              <p className="text-gray-700 leading-relaxed">
-                Hi Claire 👋 — your final interview is tomorrow. I know it feels
-                close. Let’s make sure you go in feeling clear, not just
-                prepared.
-              </p>
+              <p className="leading-relaxed text-gray-700">{mayaGreeting}</p>
 
-              <div className="mt-4 bg-[#FFF5E6] border border-[#F2C879] rounded-xl px-4 py-2 text-sm text-[#8B5E00]">
-                Friendly mode: warm and encouraging throughout your session
+              <div className="mt-4 rounded-xl border border-[#F2C879] bg-[#FFF5E6] px-4 py-2 text-sm text-[#8B5E00]">
+                Friendly mode: warm and encouraging tone throughout your session
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <p className="text-sm text-[#E59B00] font-medium">
-            Tomorrow • 10:00 AM
-          </p>
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <p className="text-sm font-medium text-[#E59B00]">Tomorrow - 10:00 AM</p>
+          <h2 className="mt-2 text-lg font-semibold">Product Designer</h2>
+          <p className="mt-1 text-sm text-gray-500">You mentioned feeling anxious about thinking clearly on the spot.</p>
 
-          <h2 className="text-lg font-semibold mt-2">
-            Product Designer
-          </h2>
-
-          <p className="text-gray-500 text-sm mt-1">
-            You mentioned feeling anxious about thinking clearly on the spot.
-          </p>
-
-          <div className="flex gap-3 mt-6">
+          <div className="mt-6 flex gap-3">
             <button
-              onClick={() =>
-                router.push("/coach/interview-checkin")
-              }
-              className="bg-[#0D7C66] text-white px-4 py-2 rounded-lg hover:bg-[#095c4c]"
+              onClick={() => router.push("/coach/interview-checkin")}
+              className="rounded-lg bg-[#0D7C66] px-4 py-2 text-white hover:bg-[#095c4c]"
             >
               Start pre-interview session
             </button>
 
             <button
-              onClick={() =>
-                router.push("/coach/checklist")
-              }
-              className="border border-gray-300 px-4 py-2 rounded-lg"
+              onClick={() => router.push("/coach/checklist")}
+              className="rounded-lg border border-gray-300 px-4 py-2"
             >
               View checklist
             </button>
@@ -92,58 +138,37 @@ export default function CoachPage() {
         </div>
       </div>
 
-      {/* Sessions */}
-      <h2 className="text-lg font-semibold mb-4">
-        Recommended Sessions
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {sessions.map((session, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-2xl p-6 shadow-sm"
-          >
-            <div className="text-4xl">{session.emoji}</div>
-
-            <h3 className="mt-4 font-semibold text-lg">
-              {session.title}
-            </h3>
-
-            <p className="text-gray-500 text-sm mt-1">
-              {session.subtitle}
+      <h2 className="mb-4 text-lg font-semibold">Recommended Sessions</h2>
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        {recommendedSessions.map((session, index) => (
+          <div key={`${session.session_type}-${index}`} className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="text-4xl">•</div>
+            <h3 className="mt-4 text-lg font-semibold">{session.title}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {session.duration_mins} min - {session.focus}
             </p>
-
-            <button className="mt-6 bg-[#0D7C66] text-white px-4 py-2 rounded-lg">
+            <button
+              className="mt-6 rounded-lg bg-[#0D7C66] px-4 py-2 text-white"
+              data-session-type={session.session_type}
+            >
               Start
             </button>
           </div>
         ))}
       </div>
 
-      {/* Recommendations */}
-      <h2 className="text-lg font-semibold mb-4">
-        Recommended Today
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        {[
-          "Strongest users maintain persistence",
-          "Growth anxiety thinking clearly under pressure",
-          "Patterns: anxiety spikes the night before interviews",
-          "Morning sessions produce highest confidence lifts",
-        ].map((tip, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl p-4 shadow-sm text-sm text-gray-700"
-          >
+      <h2 className="mb-4 text-lg font-semibold">Recommended Today</h2>
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+        {recommendedToday.map((tip, index) => (
+          <div key={`${tip}-${index}`} className="rounded-xl bg-white p-4 text-sm text-gray-700 shadow-sm">
             • {tip}
           </div>
         ))}
       </div>
 
-      {/* Bottom Suggestion */}
-      <div className="bg-[#DFF5EF] border border-[#8DD8C4] rounded-xl p-4 text-sm text-[#065F46]">
-        Maya suggests: A 5-min breathing session tonight at 9 PM.
+      <div className="rounded-xl border border-[#8DD8C4] bg-[#DFF5EF] p-4 text-sm text-[#065F46]">
+        Maya suggests: {suggestionText}
+        {suggestionTime ? ` (${suggestionTime})` : ""}
       </div>
     </div>
   );
