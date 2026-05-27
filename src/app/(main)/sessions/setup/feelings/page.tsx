@@ -9,6 +9,8 @@ const feelings = [
   "Grounded",
   "Confident",
   "Focused",
+  "Clear-minded",
+  "Composed",
 ];
 
 export default function FeelingsPage() {
