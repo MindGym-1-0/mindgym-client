@@ -45,39 +45,83 @@ function assertObject(payload: unknown, entityName: string): asserts payload is 
   }
 }
 
-function assertCoachHomeResponse(payload: unknown): asserts payload is CoachHomeResponse {
-  assertObject(payload, "coach home");
-
-  if (!Array.isArray(payload.recommended_sessions)) {
-    throw new Error("Malformed coach home response: recommended_sessions must be an array.");
-  }
-
-  if (!Array.isArray(payload.recommended_today)) {
-    throw new Error("Malformed coach home response: recommended_today must be an array.");
-  }
-
-  if (!payload.maya_suggests || typeof payload.maya_suggests !== "object") {
-    throw new Error("Malformed coach home response: maya_suggests is required.");
-  }
-
-  if (typeof payload.maya_greeting !== "string") {
-    throw new Error("Malformed coach home response: maya_greeting must be a string.");
+function assertStringField(value: unknown, fieldPath: string, entityName: string) {
+  if (typeof value !== "string") {
+    throw new Error(`Malformed ${entityName} response: ${fieldPath} must be a string.`);
   }
 }
 
+function assertNumberField(value: unknown, fieldPath: string, entityName: string) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    throw new Error(`Malformed ${entityName} response: ${fieldPath} must be a number.`);
+  }
+}
+
+function assertArrayField(value: unknown, fieldPath: string, entityName: string): asserts value is unknown[] {
+  if (!Array.isArray(value)) {
+    throw new Error(`Malformed ${entityName} response: ${fieldPath} must be an array.`);
+  }
+}
+
+function assertObjectField(
+  value: unknown,
+  fieldPath: string,
+  entityName: string
+): asserts value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`Malformed ${entityName} response: ${fieldPath} must be an object.`);
+  }
+}
+
+function assertCoachHomeResponse(payload: unknown): asserts payload is CoachHomeResponse {
+  const entityName = "coach home";
+  assertObject(payload, "coach home");
+  assertArrayField(payload.recommended_sessions, "recommended_sessions", entityName);
+  assertArrayField(payload.recommended_today, "recommended_today", entityName);
+  assertObjectField(payload.maya_suggests, "maya_suggests", entityName);
+  assertStringField(payload.maya_greeting, "maya_greeting", entityName);
+
+  payload.recommended_sessions.forEach((item, index) => {
+    const fieldPrefix = `recommended_sessions[${index}]`;
+    assertObjectField(item, fieldPrefix, entityName);
+    assertStringField(item.title, `${fieldPrefix}.title`, entityName);
+    assertNumberField(item.duration_mins, `${fieldPrefix}.duration_mins`, entityName);
+    assertStringField(item.focus, `${fieldPrefix}.focus`, entityName);
+    assertStringField(item.session_type, `${fieldPrefix}.session_type`, entityName);
+  });
+
+  payload.recommended_today.forEach((item, index) => {
+    assertStringField(item, `recommended_today[${index}]`, entityName);
+  });
+
+  assertStringField(payload.maya_suggests.text, "maya_suggests.text", entityName);
+  assertStringField(payload.maya_suggests.session_type, "maya_suggests.session_type", entityName);
+  assertStringField(payload.maya_suggests.time_suggestion, "maya_suggests.time_suggestion", entityName);
+}
+
 function assertCoachPrepPlanResponse(payload: unknown): asserts payload is CoachPrepPlanResponse {
+  const entityName = "coach prep plan";
   assertObject(payload, "coach prep plan");
+  assertArrayField(payload.plan, "plan", entityName);
+  assertObjectField(payload.recommended_first_session, "recommended_first_session", entityName);
+  assertStringField(payload.coach_note, "coach_note", entityName);
 
-  if (!Array.isArray(payload.plan)) {
-    throw new Error("Malformed coach prep plan response: plan must be an array.");
-  }
+  payload.plan.forEach((item, index) => {
+    const fieldPrefix = `plan[${index}]`;
+    assertObjectField(item, fieldPrefix, entityName);
+    assertNumberField(item.day, `${fieldPrefix}.day`, entityName);
+    assertStringField(item.task, `${fieldPrefix}.task`, entityName);
+    assertStringField(item.description, `${fieldPrefix}.description`, entityName);
+    assertStringField(item.session_type, `${fieldPrefix}.session_type`, entityName);
+    assertNumberField(item.duration_mins, `${fieldPrefix}.duration_mins`, entityName);
+  });
 
-  if (!payload.recommended_first_session || typeof payload.recommended_first_session !== "object") {
-    throw new Error("Malformed coach prep plan response: recommended_first_session is required.");
-  }
+  assertStringField(payload.recommended_first_session.session_type, "recommended_first_session.session_type", entityName);
+  assertStringField(payload.recommended_first_session.reason, "recommended_first_session.reason", entityName);
+  assertNumberField(payload.recommended_first_session.duration_mins, "recommended_first_session.duration_mins", entityName);
 
-  if (typeof payload.coach_note !== "string") {
-    throw new Error("Malformed coach prep plan response: coach_note must be a string.");
+  if (payload.created_at !== undefined) {
+    assertStringField(payload.created_at, "created_at", entityName);
   }
 }
 
