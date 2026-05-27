@@ -8,6 +8,10 @@ function normalizeApiBaseUrl() {
   return API_BASE_ENV.replace(/\/+$/, "");
 }
 
-export function buildAuthApiUrl(path: `/api/auth/${string}`) {
+export function buildApiUrl(path: `/${string}`) {
   return `${normalizeApiBaseUrl()}${path}`;
+}
+
+export function buildAuthApiUrl(path: `/api/auth/${string}`) {
+  return buildApiUrl(path);
 }
