@@ -38,9 +38,43 @@ export default function SignUpPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle sign up
+    if (isLoading) return;
+
+    setError('');
+  
+    if (!formData.email.trim() || !formData.password.trim()) {
+      setError('Please fill out all fields.');
+      return;
+    }
+  
+    setIsLoading(true);
+  
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        setError(data.detail || 'Unable to create account right now. Please try again.');
+        return;
+      }
+  
+      window.location.href = '/onboarding';
+    } catch {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -153,19 +187,26 @@ export default function SignUpPage() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full px-4 py-3 bg-teal-600 text-white font-sans font-medium rounded-lg hover:bg-teal-700 transition-colors"
             >
-              Sign up →
+              {isLoading ? 'Creating account...' : 'Sign up →'}
             </button>
           </form>
 
           {/* Agreement */}
           <div className="flex items-start gap-3 mt-4">
             <input type="checkbox" className="mt-1" />
-            <p className="text-b4 text-ink-60">
-              I agree to receive personalised coaching tips and session reminders. You can unsubscribe anytime.
-            </p>
+            <p>I agree to receive...</p>
           </div>
+
+          <p className="text-center text-b4 text-ink-60 mt-6">
+            Already have an account?{' '}
+            <a href="/login" className="text-teal-600 hover:text-teal-700 font-medium">
+              Sign in
+            </a>
+          </p>
+
         </div>
       </div>
 
