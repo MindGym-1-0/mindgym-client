@@ -7,45 +7,65 @@ interface Step4PlanProps {
   onComplete?: () => void;
 }
 
-// Helper to map mood IDs to readable labels
 const MOOD_LABELS: Record<string, string> = {
   "interview-anxiety": "Interview anxiety",
-  "overthinking": "Overthinking",
-  "rejection": "Handling rejection",
-  "burnout": "Burnout recovery",
-  "motivation": "Staying motivated",
-  "confidence": "Confidence building",
+  overthinking: "Overthinking",
+  rejection: "Handling rejection",
+  burnout: "Burnout recovery",
+  motivation: "Staying motivated",
+  confidence: "Confidence building",
 };
 
-export function Step4Plan({ formData, onComplete }: Step4PlanProps) {
-  // --- Dynamic Content Generation ---
+export function Step4Plan({
+  formData,
+  onComplete,
+}: Step4PlanProps) {
   
-  let dynamicQuote = "We're here to support your career journey every step of the way.";
+  let dynamicQuote =
+    "We’re here to support your career journey every step of the way.";
+
   let stageTag = "Career search";
-  
+
   switch (formData.jobStage) {
     case "Sending applications":
-      dynamicQuote = "You're putting yourself out there. We'll help your applications stand out and manage the anxiety of the wait.";
+      dynamicQuote =
+        "You’re putting yourself out there. We’ll help your applications stand out and manage the anxiety of waiting.";
+
       stageTag = "Application phase";
       break;
+
     case "Getting recruiter calls":
-      dynamicQuote = `"You're getting recruiter calls — which means your applications are working. We'll help you feel calmer and more confident during high-pressure conversations."`;
+      dynamicQuote =
+        "You’re getting recruiter calls — which means your applications are working. We’ll help you feel calmer and more confident during high-pressure conversations.";
+
       stageTag = "Screening stage";
       break;
+
     case "In interviews":
-      dynamicQuote = "You're in the thick of it. We'll focus on sharpening your responses, calming your nerves, and keeping your head in the game.";
+      dynamicQuote =
+        "You’re in the thick of it. We’ll focus on sharpening your responses, calming nerves, and helping you stay composed.";
+
       stageTag = "Interview prep";
       break;
+
     case "Final rounds / offers":
-      dynamicQuote = "You're at the finish line. We'll help you navigate negotiations, weigh your options, and make the best choice with clarity.";
+      dynamicQuote =
+        "You’re at the finish line. We’ll help you navigate negotiations and make confident decisions with clarity.";
+
       stageTag = "Offer negotiation";
       break;
-      
   }
 
-  // Fallback to the raw string if they typed a custom mood
-  const moodTag = MOOD_LABELS[formData.mood] || formData.mood || "Mental fitness"; 
-  const roleTag = formData.jobRole && formData.jobRole !== "Open to options" ? formData.jobRole : "Career pivot";
+  const moodTag =
+    MOOD_LABELS[formData.mood] ||
+    formData.mood ||
+    "Mental fitness";
+
+  const roleTag =
+    formData.jobRole &&
+    formData.jobRole !== "Open to options"
+      ? formData.jobRole
+      : "Career direction";
 
   return (
     <div className="flex flex-col items-center text-center max-w-2xl mx-auto w-full">
