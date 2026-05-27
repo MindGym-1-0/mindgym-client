@@ -5,7 +5,6 @@ import {
   Flame,
   Calendar,
   TrendingUp,
-  Plus,
 } from "lucide-react";
 
 export default function DashboardPage() {
