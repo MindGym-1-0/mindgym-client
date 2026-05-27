@@ -73,7 +73,6 @@ export default function CoachPrepPage() {
   const [selectedWorry, setSelectedWorry] = useState<string>(WORRY_OPTIONS[0].worryInput);
   const [prepPlan, setPrepPlan] = useState<CoachPrepPlanResponse | null>(null);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
-  const [isMissingSavedPlan, setIsMissingSavedPlan] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStartingIntake, setIsStartingIntake] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -92,7 +91,6 @@ export default function CoachPrepPage() {
     async function loadSavedPlan() {
       if (!interviewId) {
         setPrepPlan(null);
-        setIsMissingSavedPlan(false);
         setLoadError(null);
         setIsLoadingPlan(false);
         return;
@@ -105,13 +103,11 @@ export default function CoachPrepPage() {
         const data = await getCoachPrepPlan(interviewId);
         if (!isActive) return;
         setPrepPlan(data);
-        setIsMissingSavedPlan(false);
       } catch (error) {
         if (!isActive) return;
 
         if (error instanceof CoachApiError && error.status === 404) {
           setPrepPlan(null);
-          setIsMissingSavedPlan(true);
           setLoadError(null);
           return;
         }
@@ -132,8 +128,8 @@ export default function CoachPrepPage() {
 
   const planItems = useMemo(() => prepPlan?.plan ?? [], [prepPlan]);
   const hasInterviewId = Boolean(interviewId);
-  const canShowWorrySelector = isMissingSavedPlan || (!isLoadingPlan && !prepPlan);
-  const canGeneratePlan = hasInterviewId && canShowWorrySelector;
+  const hasSavedPlan = Boolean(prepPlan);
+  const canGenerateOrRegeneratePlan = hasInterviewId && !isGenerating;
 
   async function handleGeneratePlan() {
     if (isGenerating) return;
@@ -149,7 +145,6 @@ export default function CoachPrepPage() {
     try {
       const data = await createCoachPrepPlan(interviewId, selectedWorry);
       setPrepPlan(data);
-      setIsMissingSavedPlan(false);
     } catch (error) {
       setGenerateError(mapGenerateError(error));
     } finally {
@@ -226,7 +221,7 @@ export default function CoachPrepPage() {
                   className={`w-full rounded-xl border p-4 text-left ${
                     isSelected ? "border-[#0D7C66] bg-[#E8F7F2]" : "border-gray-200"
                   }`}
-                  disabled={!canGeneratePlan || isGenerating}
+                  disabled={isGenerating}
                 >
                   <p className="font-medium text-[#1D1D1D]">{item.label}</p>
                   <p className="text-sm text-gray-500">{item.subtitle}</p>
@@ -235,18 +230,18 @@ export default function CoachPrepPage() {
             })}
           </div>
 
-          {canShowWorrySelector ? (
-            <button
-              type="button"
-              onClick={handleGeneratePlan}
-              disabled={isGenerating || !hasInterviewId}
-              className="mt-6 rounded-xl bg-[#0D7C66] px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isGenerating ? "Generating prep plan..." : "Generate prep plan"}
-            </button>
-          ) : (
-            <p className="mt-6 text-sm text-gray-500">Saved plan found. Generate a new one only if you need to refresh it.</p>
-          )}
+          {hasSavedPlan ? (
+            <p className="mt-6 text-sm text-gray-500">Saved plan found. You can adjust your worry and regenerate it if needed.</p>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={handleGeneratePlan}
+            disabled={!canGenerateOrRegeneratePlan}
+            className="mt-4 rounded-xl bg-[#0D7C66] px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isGenerating ? (hasSavedPlan ? "Regenerating prep plan..." : "Generating prep plan...") : hasSavedPlan ? "Regenerate prep plan" : "Generate prep plan"}
+          </button>
 
           {generateError ? <p className="mt-3 text-sm text-[#A94442]">{generateError}</p> : null}
         </div>
