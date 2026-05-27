@@ -79,8 +79,18 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/dashboard");
+      if (process.env.NODE_ENV !== "production") {
+        console.info("[auth] Login succeeded", { status: response.status });
+      }
+
+      router.push("/dashboard");
       router.refresh();
+
+      window.setTimeout(() => {
+        if (window.location.pathname === "/login") {
+          window.location.assign("/dashboard");
+        }
+      }, 150);
     } catch {
       setError("Network error. Please check your connection and try again.");
       if (process.env.NODE_ENV !== "production") {
