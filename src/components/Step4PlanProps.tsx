@@ -68,58 +68,57 @@ export function Step4Plan({
       : "Career direction";
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col items-center text-center">
+    <div className="flex flex-col items-center text-center max-w-2xl mx-auto w-full">
       
-      {/* Sparkle */}
-      <div className="mb-5 text-2xl">
-        ✨
-      </div>
+      {/* Icon */}
+      <div className="text-2xl mb-4">✨</div>
 
-      {/* Heading */}
-      <h1 className="max-w-xl text-[40px] font-semibold leading-[48px] text-[#171412]">
-        You&apos;re already further along than you feel.
+      {/* Header text */}
+      <h1 className="text-[28px] leading-[36px] font-display text-[#171412] mb-2">
+        You're already further along than you feel.
       </h1>
-
-      <p className="mt-3 text-sm text-[#686460]">
-        Here’s what MindGym will focus on for you.
+      <p className="text-[14px] leading-[18px] font-sans text-[#686460] mb-[32px]">
+        Here's what MindGym will focus on for you.
       </p>
 
-      {/* Summary Card */}
-      <div className="mt-10 w-full rounded-2xl border border-[#E7E5E4] bg-white p-8 text-left shadow-sm">
+      {/* Card Container */}
+      <div className="bg-[#FFFFFF] border border-[#E9E9E7] rounded-xl p-[24px] w-full text-left shadow-sm mb-[32px]">
         
-        <p className="text-[18px] italic leading-8 text-[#171412]">
-          “{dynamicQuote}”
+        {/* Dynamic Quote */}
+        <p className="text-[16px] leading-[24px] font-display text-[#171412] font-medium italic mb-[24px]">
+          {dynamicQuote}
         </p>
 
-        {/* Tags */}
-        <div className="mt-8 flex flex-wrap gap-3 border-t border-[#E7E5E4] pt-6">
-          
-          <span className="rounded-full bg-[#DDF2EE] px-3 py-1 text-xs font-semibold text-[#126658]">
+        {/* Tags Row */}
+        <div className="flex flex-wrap gap-[8px] pt-[24px] border-t border-[#E9E9E7]">
+          {/* Stage Tag */}
+          <span className="px-[8px] py-[4px] bg-[#DDF2EE] text-[#126658] rounded text-[10px] leading-[14px] font-sans font-bold">
             {stageTag}
           </span>
-
-          <span className="rounded-full bg-[#FFF3DD] px-3 py-1 text-xs font-semibold text-[#C97A15]">
+          {/* Mood Tag */}
+          <span className="px-[8px] py-[4px] bg-[#FFF3DD] text-[#C97A15] rounded text-[10px] leading-[14px] font-sans font-bold">
             {moodTag}
           </span>
-
-          <span className="rounded-full bg-[#EDF3FC] px-3 py-1 text-xs font-semibold text-[#4A6FA5]">
+          {/* Role/Direction Tag */}
+          <span className="px-[8px] py-[4px] bg-[#EDF3FC] text-[#4A6FA5] rounded text-[10px] leading-[14px] font-sans font-bold line-clamp-1 max-w-[200px]">
             {roleTag}
           </span>
         </div>
       </div>
 
-      {/* Button */}
+      {/* Call to Action */}
       <button
         onClick={onComplete}
-        className="mt-10 rounded-xl bg-[#126658] px-7 py-3 text-sm font-semibold text-white transition-all hover:bg-[#0D4E43]"
+        className="px-[16px] py-[12px] bg-[#126658] text-[#FFFFFF] rounded-lg text-[14px] font-sans font-semibold flex items-center justify-center gap-2 hover:bg-[#0D2B26] transition-colors mb-[16px]"
       >
-        Enter Dashboard →
+        Enter Dashboard <span aria-hidden="true">→</span>
       </button>
 
       {/* Footer Text */}
-      <p className="mt-5 text-xs text-[#A6A29F]">
-        You can update these anytime in Settings.
+      <p className="text-[12px] leading-[16px] font-sans text-[#B0AAA6]">
+        You can update these at any time in Settings.
       </p>
+
     </div>
   );
 }

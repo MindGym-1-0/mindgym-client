@@ -80,17 +80,10 @@ export function Step3MoodSelection({
   };
 
   return (
-    <div className="space-y-10">
-      
-      <div className="text-center">
-        
-        <h2 className="text-[40px] leading-[48px] font-semibold text-[#171412]">
-          What&rsquo;s been the hardest part emotionally?
-        </h2>
-
-        <p className="mt-4 text-[16px] text-[#686460]">
-          This personalises your coaching sessions.
-        </p>
+    <div className="space-y-lg">
+      <div>
+        <h2 className="text-h2 font-display text-ink mb-sm">What's been the hardest part emotionally?</h2>
+        <p className="text-b2 text-ink-60">This personalises your coaching sessions.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-5 md:grid-cols-3">

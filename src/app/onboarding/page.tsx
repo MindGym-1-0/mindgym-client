@@ -1,9 +1,8 @@
 "use client";
 
+import Image from 'next/image';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-
 import { Step1JobRole } from "@/components/Step1JobRole";
 import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
@@ -143,21 +142,18 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F5] flex flex-col">
-      
-      {/* HEADER */}
-      <header className="border-b border-[#E7E5E4] bg-white">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-8">
-          
-          {/* LEFT */}
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border">
+        <div className="max-w-4xl mx-auto px-base py-base flex justify-between items-center">
+          <div className="flex items-center gap-2">
             <Image
-              src="/logo.png"
-              alt="MindGym Logo"
-              width={120}
-              height={36}
-              priority
+              src="/mindgym-icon.png" 
+              alt="MindGym Logo" 
+              width={40}
+              height={40}
             />
+            <span className="font-display text-h4 text-ink">MindGym</span>
           </div>
 
           {/* RIGHT */}
