@@ -44,7 +44,7 @@ export default function SignUpPage() {
 
     setError('');
   
-    if (!formData.email.trim() || !formData.password.trim()) {
+    if (!formData.email.trim() || !formData.password.trim() || !formData.email.trim() || !formData.password.trim()) {
       setError('Please fill out all fields.');
       return;
     }
@@ -59,6 +59,8 @@ export default function SignUpPage() {
         body: JSON.stringify({
           email: formData.email.trim(),
           password: formData.password,
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
         }),
       });
   
