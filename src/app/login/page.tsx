@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
 import { buildAuthApiUrl } from "../../lib/auth/api";
 
@@ -27,7 +26,6 @@ function parseErrorMessage(status: number, payload: unknown) {
 }
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -83,14 +81,7 @@ export default function LoginPage() {
         console.info("[auth] Login succeeded", { status: response.status });
       }
 
-      router.push("/dashboard");
-      router.refresh();
-
-      window.setTimeout(() => {
-        if (window.location.pathname === "/login") {
-          window.location.assign("/dashboard");
-        }
-      }, 150);
+      window.location.assign("/dashboard");
     } catch {
       setError("Network error. Please check your connection and try again.");
       if (process.env.NODE_ENV !== "production") {
