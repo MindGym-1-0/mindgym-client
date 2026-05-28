@@ -42,7 +42,7 @@ export default function TimePage() {
           </Link>
 
           <Link
-            href="/sessions/setup/summary"
+            href="/sessions/setup/before"
             className="bg-[#0C6B58] text-white px-5 py-3 rounded-xl"
           >
             Continue →

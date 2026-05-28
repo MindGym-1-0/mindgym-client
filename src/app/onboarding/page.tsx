@@ -1,12 +1,13 @@
 "use client";
 
+import Image from 'next/image';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Step1JobRole } from "@/components/Step1JobRole";
 import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
-import { Step4Plan } from "@/components/Step4PlanProps"; 
+import { Step4Plan } from "@/components/Step4PlanProps";
+
 import { mockSubmitOnboarding } from "@/lib/mockAPi";
 
 interface StepConfig {
@@ -18,40 +19,49 @@ const STEP_CONFIG: Record<number, StepConfig> = {
   1: { title: "Dream direction", totalSteps: 4 },
   2: { title: "Hiring funnel", totalSteps: 4 },
   3: { title: "Emotional challenge", totalSteps: 4 },
-  4: { title: "Your plan", totalSteps: 4 }, 
+  4: { title: "Your plan", totalSteps: 4 },
 };
 
 export default function OnboardingWizard() {
   const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState(1);
+
   const [formData, setFormData] = useState({
     jobRole: "",
     jobStage: "",
     mood: "",
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const canProceed = () => {
-    if (currentStep === 1) return formData.jobRole.trim() !== "";
-    if (currentStep === 2) return formData.jobStage !== "";
-    if (currentStep === 3) return formData.mood.trim() !== "";
-    if (currentStep === 4) return true; 
-    return false;
+    if (currentStep === 1) {
+      return formData.jobRole.trim() !== "";
+    }
+
+    if (currentStep === 2) {
+      return formData.jobStage !== "";
+    }
+
+    if (currentStep === 3) {
+      return formData.mood.trim() !== "";
+    }
+
+    return true;
   };
 
   const handleNext = () => {
-    // Increased max step threshold to 4
     if (canProceed() && currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => prev + 1);
       setError("");
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep((prev) => prev - 1);
       setError("");
     }
   };
@@ -59,14 +69,20 @@ export default function OnboardingWizard() {
   const handleSubmit = async () => {
     if (!canProceed() || isLoading) return;
 
-    setIsLoading(true);
-    setError("");
-
     try {
+      setIsLoading(true);
+      setError("");
+
       await mockSubmitOnboarding(formData);
+
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong"
+      );
+
       setIsLoading(false);
     }
   };
@@ -77,30 +93,49 @@ export default function OnboardingWizard() {
         return (
           <Step1JobRole
             value={formData.jobRole}
-            onChange={(value) => setFormData({ ...formData, jobRole: value })}
+            onChange={(value) =>
+              setFormData({
+                ...formData,
+                jobRole: value,
+              })
+            }
           />
         );
+
       case 2:
         return (
           <Step2JobStage
             value={formData.jobStage}
-            onChange={(value) => setFormData({ ...formData, jobStage: value })}
+            onChange={(value) =>
+              setFormData({
+                ...formData,
+                jobStage: value,
+              })
+            }
           />
         );
+
       case 3:
         return (
           <Step3MoodSelection
             value={formData.mood}
-            onChange={(value) => setFormData({ ...formData, mood: value })}
+            onChange={(value) =>
+              setFormData({
+                ...formData,
+                mood: value,
+              })
+            }
           />
         );
+
       case 4:
         return (
-          <Step4Plan 
-            formData={formData} /* <-- THIS IS THE CRITICAL LINE */
-            onComplete={handleSubmit} 
+          <Step4Plan
+            formData={formData}
+            onComplete={handleSubmit}
           />
         );
+
       default:
         return null;
     }
@@ -112,75 +147,83 @@ export default function OnboardingWizard() {
       <header className="border-b border-border">
         <div className="max-w-4xl mx-auto px-base py-base flex justify-between items-center">
           <div className="flex items-center gap-2">
-             <Image 
-                src="/mindgym-icon.png" 
-                alt="MindGym Logo" 
-                width={40}
-                height={40}
-                className="w-10 h-10"
-              />
+            <Image
+              src="/mindgym-icon.png" 
+              alt="MindGym Logo" 
+              width={40}
+              height={40}
+            />
             <span className="font-display text-h4 text-ink">MindGym</span>
           </div>
-          <span className="text-b3 text-ink-60">
-            {STEP_CONFIG[currentStep]?.title} · {currentStep} of {STEP_CONFIG[currentStep]?.totalSteps}
-          </span>
+
+          {/* RIGHT */}
+          <p className="text-sm text-[#686460]">
+            {STEP_CONFIG[currentStep]?.title} ·{" "}
+            {currentStep} of{" "}
+            {STEP_CONFIG[currentStep]?.totalSteps}
+          </p>
         </div>
       </header>
 
-      {/* Progress bar */}
-      <div className="h-1 bg-border">
+      {/* PROGRESS BAR */}
+      <div className="h-[2px] w-full bg-[#E7E5E4]">
         <div
-          className="h-full bg-teal-600 transition-all duration-300"
+          className="h-full bg-[#126658] transition-all duration-300"
           style={{
-            // Updated to divide by 3 to reach 100% at step 4
             width: `${((currentStep - 1) / 3) * 100}%`,
           }}
         />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col p-base">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-2xl px-base">
+      {/* MAIN */}
+      <main className="flex flex-1 flex-col">
+        
+        {/* CONTENT */}
+        <div className="flex flex-1 items-center justify-center px-6 py-12">
+          <div className="w-full max-w-3xl">
             {renderStep()}
           </div>
         </div>
 
+        {/* ERROR */}
         {error && (
-          <div className="mt-lg p-base bg-error-bg border border-error text-error rounded-lg text-b3 font-semibold max-w-2xl mx-auto w-full">
+          <div className="mx-auto mb-6 w-full max-w-2xl rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* Footer Navigation (Hidden on Step 4) */}
+        {/* FOOTER BUTTONS */}
         {currentStep < 4 && (
-          <div className="flex justify-between items-center mt-lg pt-base border-t border-border">
-            <button
-              onClick={handleBack}
-              disabled={currentStep === 1 || isLoading}
-              className={`px-base py-2 rounded-lg font-sans text-b2 transition-all duration-200 ${
-                currentStep === 1
-                  ? "text-ink-30 cursor-not-allowed"
-                  : "text-ink hover:bg-background"
-              }`}
-            >
-              ← Back
-            </button>
+          <div className="border-t border-[#E7E5E4] bg-white px-8 py-5">
+            <div className="mx-auto flex max-w-7xl items-center justify-between">
+              
+              <button
+                onClick={handleBack}
+                disabled={currentStep === 1 || isLoading}
+                className={`rounded-lg px-5 py-2 text-sm font-medium transition-all ${
+                  currentStep === 1
+                    ? "cursor-not-allowed text-gray-300"
+                    : "text-[#171412] hover:bg-gray-100"
+                }`}
+              >
+                ← Back
+              </button>
 
-            <button
-              onClick={handleNext}
-              disabled={!canProceed()}
-              className={`px-lg py-2 rounded-lg font-sans text-b2 font-semibold transition-all duration-200 ${
-                canProceed()
-                  ? "bg-teal-600 text-surface hover:bg-teal-900 shadow-sm"
-                  : "bg-border text-ink-30 cursor-not-allowed"
-              }`}
-            >
-              Continue
-            </button>
+              <button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-all ${
+                  canProceed()
+                    ? "bg-[#126658] text-white hover:bg-[#0E4E43]"
+                    : "cursor-not-allowed bg-gray-200 text-gray-400"
+                }`}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

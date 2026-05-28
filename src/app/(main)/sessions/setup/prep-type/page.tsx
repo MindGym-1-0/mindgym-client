@@ -10,6 +10,8 @@ const types = [
   "Rejection recovery",
   "Networking",
   "Salary negotiation",
+  "Restarting my search",
+  "General reset",
 ];
 
 export default function PrepTypePage() {
