@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./logout-button.module.css";
 import { buildAuthApiUrl } from "../../lib/auth/api";
+import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type LogoutResponse = {
   message?: string;
@@ -57,6 +58,7 @@ export default function LogoutButton() {
         return;
       }
 
+      await getSupabaseBrowserClient().auth.signOut();
       router.replace("/login");
       router.refresh();
     } catch {
