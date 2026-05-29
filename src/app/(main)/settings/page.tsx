@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUserName } from "@/hooks/useUserName";
 
 import {
   Bell,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 
 export default function SettingsPage() {
+  const name = useUserName();
   const plans = [
     {
       name: "Free",
@@ -115,12 +117,12 @@ export default function SettingsPage() {
           <div className="flex items-center gap-4">
             
             <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#0C6B58] bg-[#DDF4EE] text-sm font-semibold text-[#0C6B58]">
-              CZ
+              {name.slice(0, 2).toUpperCase()}
             </div>
 
             <div>
               <h2 className="text-lg font-semibold text-[#111111]">
-                Claire Zhu
+                {name}
               </h2>
 
               <p className="text-sm text-gray-500">

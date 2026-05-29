@@ -3,6 +3,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useUserName } from "@/hooks/useUserName";
 
 const sessions = [
   {
@@ -23,6 +24,7 @@ const sessions = [
 ];
 
 export default function CoachPage() {
+  const name = useUserName();
   const router = useRouter();
 
   return (
@@ -45,7 +47,7 @@ export default function CoachPage() {
 
             <div>
               <p className="text-gray-700 leading-relaxed">
-                Hi Claire 👋 — your final interview is tomorrow. I know it feels
+                Hi {name} 👋 — your final interview is tomorrow. I know it feels
                 close. Let’s make sure you go in feeling clear, not just
                 prepared.
               </p>
