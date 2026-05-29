@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AuthSidebar from '@/components/AuthSidebar';
 import { getGoogleAuthUrl } from '@/lib/api';
+import { establishSupabaseSession } from '@/lib/auth/api';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -76,7 +77,11 @@ export default function SignUpPage() {
         setError(msg);
         return;
       }
-  
+
+      if (data?.session?.access_token && data?.session?.refresh_token) {
+        await establishSupabaseSession(data.session);
+      }
+
       window.location.href = '/onboarding';
     } catch {
       setError('Network error. Please check your connection and try again.');
