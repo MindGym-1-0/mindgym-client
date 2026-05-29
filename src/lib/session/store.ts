@@ -2,14 +2,14 @@ const SETUP_KEY = 'mindgym_setup';
 const ACTIVE_KEY = 'mindgym_active';
 
 export interface SetupDraft {
-  current_feeling?: string;
+  current_feeling?:  'overwhelmed' | 'discouraged' | 'exhausted' | 'unsure' | 'anxious but hopeful';
   feeling_note?: string;
   anxiety_level_before?: number;
   preparation_for?: string;
   company?: string;
   role?: string;
-  desired_feeling?: string;
-  time_available?: string;
+  desired_feeling?: 'calm' | 'grounded' | 'confident' | 'focused' | 'clear_minded' | 'composed';
+  time_available?: '5 min' | '10 min' | '15 min';
 }
 
 export interface ActiveSession {
