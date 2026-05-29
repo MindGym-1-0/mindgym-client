@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { writeSetup } from "@/lib/session/store";
+import { writeSetup, SetupDraft } from "@/lib/session/store";
 
 const TIMES = ["5 min", "10 min", "15 min"];
 
@@ -12,7 +12,7 @@ export default function TimePage() {
 
   const handleContinue = () => {
     if (!selected) return;
-    writeSetup({ time_available: selected });
+    writeSetup({ time_available: selected as SetupDraft['time_available'] });
     router.push("/sessions/setup/before");
   };
 

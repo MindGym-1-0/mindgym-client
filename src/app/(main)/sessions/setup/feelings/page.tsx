@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { readSetup, writeSetup } from "@/lib/session/store";
+import { readSetup, writeSetup, SetupDraft } from "@/lib/session/store";
 
 const FEELINGS = [
   { label: "Calm", value: "calm" },
@@ -29,7 +29,7 @@ export default function FeelingsPage() {
 
   const handleContinue = () => {
     if (!selected) return;
-    writeSetup({ desired_feeling: selected });
+    writeSetup({ desired_feeling: selected as SetupDraft['desired_feeling'] });
     router.push("/sessions/setup/time");
   };
 

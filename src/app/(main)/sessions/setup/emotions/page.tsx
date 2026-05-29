@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { writeSetup } from "@/lib/session/store";
+import { writeSetup, SetupDraft } from "@/lib/session/store";
 
 const FEELINGS = [
   { label: "😟 Overwhelmed", value: "overwhelmed" },
@@ -19,7 +19,7 @@ export default function EmotionsPage() {
 
   const handleContinue = () => {
     if (!selected) return;
-    writeSetup({ current_feeling: selected, feeling_note: note || undefined });
+    writeSetup({ current_feeling: selected as SetupDraft['current_feeling'], feeling_note: note || undefined });
     router.push("/sessions/setup/prep-type");
   };
 
