@@ -9,14 +9,14 @@ function isProtectedRoute(pathname: string) {
   return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
-function hasBackendAuthCookie(request: NextRequest) {
+function hasBackendAuthCookie(request: NextRequest): boolean {
   return BACKEND_AUTH_COOKIE_KEYS.some((key) => {
     const value = request.cookies.get(key)?.value;
     return Boolean(value && value.trim());
   });
 }
 
-async function hasSupabaseSession(request: NextRequest) {
+async function hasSupabaseSession(request: NextRequest): Promise<boolean> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -86,5 +86,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"]
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
+  ]
 };
