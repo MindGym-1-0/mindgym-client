@@ -1,16 +1,13 @@
-// src/app/(main)/sessions/setup/interview-details/page.tsx
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { readSetup, writeSetup } from "@/lib/session/store";
+import { writeSetup } from "@/lib/session/store";
 
 export default function InterviewDetailsPage() {
-  const setup = readSetup();
   const router = useRouter();
-  const [company, setCompany] = useState(setup.company ?? "");
-  const [role, setRole] = useState(setup.role ?? "");
+  const [company, setCompany] = useState("");
+  const [role, setRole] = useState("");
 
   const canContinue = company.trim() !== "" && role.trim() !== "";
 

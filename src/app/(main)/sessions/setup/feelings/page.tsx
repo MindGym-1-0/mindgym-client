@@ -1,12 +1,10 @@
-// src/app/(main)/sessions/setup/feelings/page.tsx
-
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { readSetup, writeSetup } from "@/lib/session/store";
+import { readSetup, writeSetup, SetupDraft } from "@/lib/session/store";
 
-const feelings = [
+const FEELINGS = [
   { label: "Calm", value: "calm" },
   { label: "Grounded", value: "grounded" },
   { label: "Confident", value: "confident" },
@@ -15,18 +13,23 @@ const feelings = [
   { label: "Composed", value: "composed" },
 ];
 
+const MODE1 = new Set(["interview_tomorrow", "recruiter_call"]);
+
 export default function FeelingsPage() {
   const router = useRouter();
-  const setup = readSetup();
-  const [selected, setSelected] = useState(setup.desired_feeling ?? "");
+  const [selected, setSelected] = useState("");
+  const [backHref, setBackHref] = useState("/sessions/setup/prep-type");
 
-  const needsInterviewDetails =
-    setup.preparation_for === "interview_tomorrow" ||
-    setup.preparation_for === "recruiter_call";
+  useEffect(() => {
+    const setup = readSetup();
+    if (setup.preparation_for && MODE1.has(setup.preparation_for)) {
+      setBackHref("/sessions/setup/interview-details");
+    }
+  }, []);
 
   const handleContinue = () => {
     if (!selected) return;
-    writeSetup({ desired_feeling: selected as never });
+    writeSetup({ desired_feeling: selected as SetupDraft['desired_feeling'] });
     router.push("/sessions/setup/time");
   };
 
@@ -38,7 +41,7 @@ export default function FeelingsPage() {
         <h1 className="text-4xl font-semibold">How would you like to feel?</h1>
 
         <div className="flex justify-center gap-4 mt-8 flex-wrap">
-          {feelings.map((f) => (
+          {FEELINGS.map((f) => (
             <button
               key={f.value}
               onClick={() => setSelected(f.value)}
@@ -55,13 +58,7 @@ export default function FeelingsPage() {
 
         <div className="flex justify-center gap-4 mt-10">
           <button
-            onClick={() =>
-              router.push(
-                needsInterviewDetails
-                  ? "/sessions/setup/interview-details"
-                  : "/sessions/setup/prep-type"
-              )
-            }
+            onClick={() => router.push(backHref)}
             className="px-5 py-3 rounded-xl border"
           >
             ← Back
@@ -70,7 +67,7 @@ export default function FeelingsPage() {
             onClick={handleContinue}
             disabled={!selected}
             className={`px-5 py-3 rounded-xl text-white transition-all ${
-              selected ? "bg-[#0C6B58] hover:bg-[#084C3F]" : "bg-gray-400 cursor-not-allowed"
+              selected ? "bg-[#0C6B58] hover:bg-[#084C3F]" : "cursor-not-allowed bg-gray-400"
             }`}
           >
             Continue →

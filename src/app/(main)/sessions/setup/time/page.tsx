@@ -1,21 +1,18 @@
-// src/app/(main)/sessions/setup/time/page.tsx
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { readSetup, writeSetup } from "@/lib/session/store";
+import { writeSetup, SetupDraft } from "@/lib/session/store";
 
-const times = ["5 min", "10 min", "15 min"] as const;
+const TIMES = ["5 min", "10 min", "15 min"];
 
 export default function TimePage() {
   const router = useRouter();
-  const setup = readSetup();
-  const [selected, setSelected] = useState<string>(setup.time_available ?? "");
+  const [selected, setSelected] = useState("");
 
   const handleContinue = () => {
     if (!selected) return;
-    writeSetup({ time_available: selected as never });
+    writeSetup({ time_available: selected as SetupDraft['time_available'] });
     router.push("/sessions/setup/before");
   };
 
@@ -27,17 +24,17 @@ export default function TimePage() {
         <h1 className="text-4xl font-semibold">How much time do you have?</h1>
 
         <div className="flex justify-center gap-4 mt-8">
-          {times.map((t) => (
+          {TIMES.map((time) => (
             <button
-              key={t}
-              onClick={() => setSelected(t)}
+              key={time}
+              onClick={() => setSelected(time)}
               className={`px-6 py-4 rounded-2xl border transition-all ${
-                selected === t
+                selected === time
                   ? "border-[#0C6B58] bg-[#DDF4EE] text-[#0C6B58]"
                   : "bg-white hover:bg-[#DDF4EE]"
               }`}
             >
-              {t}
+              {time}
             </button>
           ))}
         </div>
@@ -53,7 +50,7 @@ export default function TimePage() {
             onClick={handleContinue}
             disabled={!selected}
             className={`px-5 py-3 rounded-xl text-white transition-all ${
-              selected ? "bg-[#0C6B58] hover:bg-[#084C3F]" : "bg-gray-400 cursor-not-allowed"
+              selected ? "bg-[#0C6B58] hover:bg-[#084C3F]" : "cursor-not-allowed bg-gray-400"
             }`}
           >
             Continue →

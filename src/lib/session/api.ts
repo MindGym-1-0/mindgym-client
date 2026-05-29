@@ -1,12 +1,18 @@
-import { supabase } from '../supabase/client';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
 async function getToken(): Promise<string> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error('Not authenticated');
-  return token;
+  const supabase = getSupabaseBrowserClient();
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) return session.access_token;
+
+  // Session not in memory (e.g. after full-page reload) — try refreshing via cookie
+  const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+  if (refreshed?.access_token) return refreshed.access_token;
+
+  throw new Error('Not authenticated');
 }
 
 export interface StartSessionRequest {

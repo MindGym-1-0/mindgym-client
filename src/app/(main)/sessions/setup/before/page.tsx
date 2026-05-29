@@ -4,25 +4,25 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { writeSetup } from "@/lib/session/store";
 
-const anxietyLabels: Record<number, string> = {
+const LABEL_MAP: Record<number, string> = {
   1: "Very calm",
-  2: "Mostly calm",
-  3: "Slightly tense",
-  4: "Some tension",
-  5: "Moderate anxiety",
-  6: "Noticeably anxious",
+  2: "Calm",
+  3: "Mostly calm",
+  4: "Slight tension",
+  5: "Some tension — still present",
+  6: "Moderately anxious",
   7: "Quite anxious",
   8: "Very anxious",
-  9: "Extremely anxious",
-  10: "Overwhelmed",
+  9: "Highly anxious",
+  10: "Extremely anxious",
 };
 
-export default function BeforePage() {
+export default function SessionEmotionsPage() {
   const router = useRouter();
-  const [value, setValue] = useState(4);
+  const [selectedValue, setSelectedValue] = useState(4);
 
-  const handleContinue = () => {
-    writeSetup({ anxiety_level_before: value });
+  const handleBegin = () => {
+    writeSetup({ anxiety_level_before: selectedValue });
     router.push("/sessions/setup/summary");
   };
 
@@ -39,13 +39,18 @@ export default function BeforePage() {
               M
             </div>
             <div className="max-w-md rounded-xl border border-[#E7E5E4] bg-white px-4 py-3 text-sm text-[#171412] shadow-sm">
-              &quot;Before we begin — give me a number. How anxious are you feeling right now, honestly?&quot;
+              "Before we begin — give me a number.
+              How anxious are you feeling right now, honestly?"
             </div>
           </div>
 
           <div className="mt-10 text-center">
-            <div className="text-[72px] font-semibold leading-none text-[#171412]">{value}</div>
-            <p className="mt-2 text-sm text-[#686460]">{anxietyLabels[value]}</p>
+            <div className="text-[72px] font-semibold leading-none text-[#171412]">
+              {selectedValue}
+            </div>
+            <p className="mt-2 text-sm text-[#686460]">
+              {LABEL_MAP[selectedValue]}
+            </p>
           </div>
 
           <div className="mt-10 w-full max-w-xl">
@@ -53,8 +58,8 @@ export default function BeforePage() {
               type="range"
               min="1"
               max="10"
-              value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
+              value={selectedValue}
+              onChange={(e) => setSelectedValue(Number(e.target.value))}
               className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[#D8D5D1]"
             />
             <div className="mt-3 flex justify-between text-xs text-[#9A9691]">
@@ -64,20 +69,12 @@ export default function BeforePage() {
             </div>
           </div>
 
-          <div className="mt-10 flex gap-4">
-            <button
-              onClick={() => router.push("/sessions/setup/time")}
-              className="rounded-xl border px-6 py-3 text-sm font-semibold"
-            >
-              ← Back
-            </button>
-            <button
-              onClick={handleContinue}
-              className="rounded-xl bg-[#126658] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#0D4E43]"
-            >
-              Continue →
-            </button>
-          </div>
+          <button
+            onClick={handleBegin}
+            className="mt-10 rounded-xl bg-[#126658] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#0D4E43]"
+          >
+            Begin session →
+          </button>
 
           <p className="mt-5 text-xs text-[#A6A29F]">
             You&apos;ll track again at the session&apos;s end for change.
