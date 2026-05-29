@@ -8,7 +8,25 @@ import { Step2JobStage } from "@/components/Step2JobStage";
 import { Step3MoodSelection } from "@/components/Step3MoodSelection";
 import { Step4Plan } from "@/components/Step4PlanProps";
 
-import { mockSubmitOnboarding } from "@/lib/mockAPi";
+import { supabase } from "@/lib/supabase/client";
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
+
+const MOOD_TO_ANXIETY: Record<string, number> = {
+  "interview-anxiety": 7,
+  overthinking: 7,
+  rejection: 8,
+  burnout: 7,
+  motivation: 4,
+  confidence: 5,
+};
+
+const STAGE_TO_BACKEND: Record<string, string> = {
+  "Sending applications": "actively_searching",
+  "Getting recruiter calls": "actively_searching",
+  "In interviews": "interviewing",
+  "Final rounds / offers": "interviewing",
+};
 
 interface StepConfig {
   title: string;
@@ -73,7 +91,28 @@ export default function OnboardingWizard() {
       setIsLoading(true);
       setError("");
 
-      await mockSubmitOnboarding(formData);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+
+      const res = await fetch(`${API_BASE}/api/onboard`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          job_goal: formData.jobRole,
+          job_search_stage:
+            STAGE_TO_BACKEND[formData.jobStage] ?? "actively_searching",
+          anxiety_level: MOOD_TO_ANXIETY[formData.mood] ?? 5,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Onboarding failed (${res.status}): ${text}`);
+      }
 
       router.push("/dashboard");
     } catch (err) {

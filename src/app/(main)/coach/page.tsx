@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUserName } from "@/hooks/useUserName";
 import { getCoachHome } from "../../../lib/coach/api";
 import type { CoachHomeResponse, RecommendedSession } from "../../../lib/coach/types";
 
@@ -34,7 +35,7 @@ const FALLBACK_INSIGHTS = [
 ];
 
 const FALLBACK_GREETING =
-  "Hi Claire - your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared.";
+  "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared.";
 
 const FALLBACK_SUGGESTION = {
   text: "A short breathing session tonight can improve tomorrow's composure.",
@@ -42,6 +43,7 @@ const FALLBACK_SUGGESTION = {
 };
 
 export default function CoachPage() {
+  const name = useUserName();
   const router = useRouter();
 
   const [coachHome, setCoachHome] = useState<CoachHomeResponse | null>(null);
@@ -85,7 +87,7 @@ export default function CoachPage() {
     return FALLBACK_INSIGHTS;
   }, [coachHome]);
 
-  const mayaGreeting = coachHome?.maya_greeting || FALLBACK_GREETING;
+  const mayaGreeting = coachHome?.maya_greeting || `Hi ${name} - ${FALLBACK_GREETING}`;
   const suggestionText = coachHome?.maya_suggests?.text || FALLBACK_SUGGESTION.text;
   const suggestionTime = coachHome?.maya_suggests?.time_suggestion || FALLBACK_SUGGESTION.time_suggestion;
 
@@ -142,7 +144,7 @@ export default function CoachPage() {
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         {recommendedSessions.map((session, index) => (
           <div key={`${session.session_type}-${index}`} className="rounded-2xl bg-white p-6 shadow-sm">
-            <div className="text-4xl">•</div>
+            <div className="text-4xl">*</div>
             <h3 className="mt-4 text-lg font-semibold">{session.title}</h3>
             <p className="mt-1 text-sm text-gray-500">
               {session.duration_mins} min - {session.focus}
@@ -161,7 +163,7 @@ export default function CoachPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         {recommendedToday.map((tip, index) => (
           <div key={`${tip}-${index}`} className="rounded-xl bg-white p-4 text-sm text-gray-700 shadow-sm">
-            • {tip}
+            * {tip}
           </div>
         ))}
       </div>

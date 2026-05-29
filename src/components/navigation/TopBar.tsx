@@ -1,6 +1,10 @@
+"use client";
+
 // src/components/navigation/TopBar.tsx
+import { useUserName } from "@/hooks/useUserName";
 
 export default function TopBar() {
+  const name = useUserName();
   return (
     <header className="flex h-[80px] items-center justify-between border-b border-gray-200 bg-white px-8">
       <div>
@@ -16,11 +20,11 @@ export default function TopBar() {
 
         <div className="flex items-center gap-3 rounded-full border border-gray-200 px-3 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#DDF4EE] text-sm font-semibold text-[#0C6B58]">
-            CZ
+            {name.slice(0, 2).toUpperCase()}
           </div>
 
           <span className="text-sm font-medium text-gray-700">
-            Claire
+            {name}
           </span>
         </div>
       </div>
