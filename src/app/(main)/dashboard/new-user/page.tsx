@@ -6,8 +6,11 @@ import {
   Calendar,
   TrendingUp,
 } from "lucide-react";
+import { useUserName } from "@/hooks/useUserName";
 
 export default function DashboardPage() {
+  const name = useUserName();
+
   return (
     <div className="min-h-screen bg-[#F6F6F4] px-8 py-8">
       
@@ -21,7 +24,7 @@ export default function DashboardPage() {
           </p>
 
           <h1 className="mt-5 text-[34px] font-semibold leading-[42px] text-[#171412]">
-            Good morning, Claire. 👋
+            Good morning, {name}. 👋
           </h1>
 
           <p className="mt-2 text-sm text-[#686460]">

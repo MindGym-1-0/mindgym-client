@@ -1,12 +1,16 @@
-import LogoutButton from "../../../components/auth/logout-button";
+"use client";
 
-// src/app/dashboard/page.tsx
+import LogoutButton from "../../../components/auth/logout-button";
+import { useUserName } from "@/hooks/useUserName";
+
 export default function DashboardPage() {
+  const name = useUserName();
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-5xl font-semibold text-[#1A1A1A]">Good morning, Claire.</h1>
+          <h1 className="text-5xl font-semibold text-[#1A1A1A]">Good morning, {name}.</h1>
           <p className="mt-2 text-gray-500">Wednesday - 14 May - 8:43 AM</p>
         </div>
         <LogoutButton />

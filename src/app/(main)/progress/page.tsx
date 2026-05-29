@@ -2,6 +2,8 @@
 
 "use client";
 
+import { useUserName } from "@/hooks/useUserName";
+
 const weeklyBars = [
   "h-4",
   "h-6",
@@ -43,6 +45,7 @@ const emotionalStats = [
 ];
 
 export default function ProgressPage() {
+  const name = useUserName();
   return (
     <div className="min-h-screen bg-[#F6F6F4] px-10 py-8">
       
@@ -58,7 +61,7 @@ export default function ProgressPage() {
           </h1>
 
           <p className="mt-2 text-sm text-gray-500">
-            Claire Zhu • 3-day streak 🔥
+            {name} • 3-day streak 🔥
           </p>
         </div>
 
