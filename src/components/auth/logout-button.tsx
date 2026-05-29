@@ -3,13 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./logout-button.module.css";
-import { buildAuthApiUrl } from "../../lib/auth/api";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
-
-type LogoutResponse = {
-  message?: string;
-  error?: string;
-};
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -19,53 +13,14 @@ export default function LogoutButton() {
   async function handleLogout() {
     if (isLoading) return;
     setError(null);
-
-    let logoutUrl: string;
-    try {
-      logoutUrl = buildAuthApiUrl("/api/auth/logout");
-    } catch {
-      setError("Authentication is not configured. Please set NEXT_PUBLIC_API_URL.");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const response = await fetch(logoutUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include"
-      });
-
-      let payload: LogoutResponse | null = null;
-      try {
-        payload = (await response.json()) as LogoutResponse;
-      } catch {
-        payload = null;
-      }
-
-      if (!response.ok) {
-        const fallback =
-          response.status >= 500
-            ? "Logout is temporarily unavailable. Please try again."
-            : "Could not log you out. Please try again.";
-        setError(payload?.error ?? fallback);
-        if (process.env.NODE_ENV !== "production") {
-          console.info("[auth] Logout failed", { status: response.status });
-        }
-        return;
-      }
-
       await getSupabaseBrowserClient().auth.signOut();
       router.replace("/login");
       router.refresh();
     } catch {
-      setError("Network error while logging out. Please try again.");
-      if (process.env.NODE_ENV !== "production") {
-        console.info("[auth] Logout network failure.");
-      }
+      setError("Could not log you out. Please try again.");
     } finally {
       setIsLoading(false);
     }

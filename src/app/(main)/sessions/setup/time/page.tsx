@@ -1,32 +1,38 @@
-// src/app/(main)/sessions/setup/time/page.tsx
-
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { writeSetup } from "@/lib/session/store";
 
-const times = [
-  "5 min",
-  "10 min",
-  "15 min",
-];
+const TIMES = ["5 min", "10 min", "15 min"];
 
 export default function TimePage() {
+  const router = useRouter();
+  const [selected, setSelected] = useState("");
+
+  const handleContinue = () => {
+    if (!selected) return;
+    writeSetup({ time_available: selected });
+    router.push("/sessions/setup/before");
+  };
+
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">
-      <p className="text-[#0C6B58] mb-8">
-        Session setup • Step 3b of 4
-      </p>
+      <p className="text-[#0C6B58] mb-8">Session setup • Step 3b of 4</p>
 
       <div className="text-center">
-        <h1 className="text-4xl font-semibold">
-          How much time do you have?
-        </h1>
+        <h1 className="text-4xl font-semibold">How much time do you have?</h1>
 
         <div className="flex justify-center gap-4 mt-8">
-          {times.map((time) => (
+          {TIMES.map((time) => (
             <button
               key={time}
-              className="px-6 py-4 rounded-2xl border bg-white hover:bg-[#DDF4EE]"
+              onClick={() => setSelected(time)}
+              className={`px-6 py-4 rounded-2xl border transition-all ${
+                selected === time
+                  ? "border-[#0C6B58] bg-[#DDF4EE] text-[#0C6B58]"
+                  : "bg-white hover:bg-[#DDF4EE]"
+              }`}
             >
               {time}
             </button>
@@ -34,19 +40,21 @@ export default function TimePage() {
         </div>
 
         <div className="flex justify-center gap-4 mt-10">
-          <Link
-            href="/sessions/setup/feelings"
+          <button
+            onClick={() => router.push("/sessions/setup/feelings")}
             className="px-5 py-3 rounded-xl border"
           >
             ← Back
-          </Link>
-
-          <Link
-            href="/sessions/setup/before"
-            className="bg-[#0C6B58] text-white px-5 py-3 rounded-xl"
+          </button>
+          <button
+            onClick={handleContinue}
+            disabled={!selected}
+            className={`px-5 py-3 rounded-xl text-white transition-all ${
+              selected ? "bg-[#0C6B58] hover:bg-[#084C3F]" : "cursor-not-allowed bg-gray-400"
+            }`}
           >
             Continue →
-          </Link>
+          </button>
         </div>
       </div>
     </div>

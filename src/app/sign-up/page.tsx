@@ -55,7 +55,6 @@ export default function SignUpPage() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           email: formData.email.trim(),
           password: formData.password,
@@ -65,9 +64,16 @@ export default function SignUpPage() {
       });
   
       const data = await response.json();
-  
+
       if (!response.ok) {
-        setError(data.detail || 'Unable to create account right now. Please try again.');
+        const raw = data?.detail;
+        const msg =
+          typeof raw === 'string'
+            ? raw
+            : Array.isArray(raw) && raw.length > 0
+            ? raw[0].msg
+            : 'Unable to create account right now. Please try again.';
+        setError(msg);
         return;
       }
   
