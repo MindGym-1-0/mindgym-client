@@ -1,44 +1,22 @@
 "use client";
-
-import Image from 'next/image';
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Step1JobRole } from "@/components/Step1JobRole";
-import { Step2JobStage } from "@/components/Step2JobStage";
-import { Step3MoodSelection } from "@/components/Step3MoodSelection";
-import { Step4Plan } from "@/components/Step4PlanProps";
+import { Step1Employment } from "@/components/Step1Employment";
+import { Step2SearchTimeline } from "@/components/Step2SearchTimeline";
+import { Step3TargetTimeline } from "@/components/Step3TargetTimeline";
+import { Step4RoleDirection } from "@/components/Step4RoleDirection";
+import { Step5CompanyType } from "@/components/Step5CompanyType";
+import { Step6ActivityMetrics } from "@/components/Step6ActivityMetrics";
+import { Step7EmotionChallenge } from "@/components/Step7EmotionChallenge";
+import { Step8BaselineAnxiety } from "@/components/Step8BaselineAnxiety";
+import { Step9Summary } from "@/components/Step9Summary";
 
 import { supabase } from "@/lib/supabase/client";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
-const MOOD_TO_ANXIETY: Record<string, number> = {
-  "interview-anxiety": 7,
-  overthinking: 7,
-  rejection: 8,
-  burnout: 7,
-  motivation: 4,
-  confidence: 5,
-};
-
-const STAGE_TO_BACKEND: Record<string, string> = {
-  "Sending applications": "actively_searching",
-  "Getting recruiter calls": "actively_searching",
-  "In interviews": "interviewing",
-  "Final rounds / offers": "interviewing",
-};
-
-interface StepConfig {
-  title: string;
-  totalSteps: number;
-}
-
-const STEP_CONFIG: Record<number, StepConfig> = {
-  1: { title: "Dream direction", totalSteps: 4 },
-  2: { title: "Hiring funnel", totalSteps: 4 },
-  3: { title: "Emotional challenge", totalSteps: 4 },
-  4: { title: "Your plan", totalSteps: 4 },
-};
+const TOTAL_STEPS = 9;
 
 export default function OnboardingWizard() {
   const router = useRouter();
@@ -46,32 +24,58 @@ export default function OnboardingWizard() {
   const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState({
-    jobRole: "",
-    jobStage: "",
-    mood: "",
+  employmentStatus: "",
+  searchTimeline: "",
+  targetTimeline: "",
+  role: "",
+  companyType: "",
+  activity: {
+    applications: 0,
+    recruiterCalls: 0,
+    interviews: 0,
+    finalRounds: 0,
+    offers: 0,
+  },
+  emotionalChallenge: "",
+  anxiety: 5,
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const canProceed = () => {
-    if (currentStep === 1) {
-      return formData.jobRole.trim() !== "";
-    }
+  switch (currentStep) {
+    case 1:
+      return formData.employmentStatus !== "";
 
-    if (currentStep === 2) {
-      return formData.jobStage !== "";
-    }
+    case 2:
+      return formData.searchTimeline !== "";
 
-    if (currentStep === 3) {
-      return formData.mood.trim() !== "";
-    }
+    case 3:
+      return formData.targetTimeline !== "";
 
-    return true;
-  };
+    case 4:
+      return formData.role.trim() !== "";
+
+    case 5:
+      return formData.companyType !== "";
+
+    case 6:
+      return true;
+
+    case 7:
+      return formData.emotionalChallenge !== "";
+
+    case 8:
+      return formData.anxiety > 0;
+
+    default:
+      return true;
+  }
+};
 
   const handleNext = () => {
-    if (canProceed() && currentStep < 4) {
+    if (canProceed() && currentStep < 9) {
       setCurrentStep((prev) => prev + 1);
       setError("");
     }
@@ -84,102 +88,255 @@ export default function OnboardingWizard() {
     }
   };
 
+  const COMPANY_MAP: Record<string, string> = {
+  "Startup (seed-series B)": "startup",
+  "Scale-up / Growth stage": "scale_up",
+  "Large tech / FAANG": "large_tech",
+  "Enterprise / Corporate": "enterprise",
+  "Any company size": "any",
+  };
+
+  const ROLE_MAP: Record<string, string> = {
+  "Product Design / UX": "product_design_ux",
+  "Product Management": "product_management",
+  "Software Engineering": "software_engineering",
+  "Data / Analytics": "data_analytics",
+  Marketing: "marketing",
+  Sales: "sales",
+  Operations: "operations",
+  Finance: "finance",
+  "People / HR": "people_hr",
+  "Leadership / Executive": "leadership_executive",
+  };
+
+  const TIMELINE_MAP: Record<string, string> = {
+  "As soon as possible": "asap",
+  "Within 3 months": "3m",
+  "Within 6 months": "6m",
+  "Within 12 months": "12m",
+  };
+
   const handleSubmit = async () => {
-    if (!canProceed() || isLoading) return;
+  if (isLoading) return;
 
-    try {
-      setIsLoading(true);
-      setError("");
+  try {
+    setIsLoading(true);
+    setError("");
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-      if (!token) throw new Error("Not authenticated");
+    const { data: sessionData } =
+      await supabase.auth.getSession();
 
-      const res = await fetch(`${API_BASE}/api/onboard`, {
+    const token =
+      sessionData.session?.access_token;
+
+    if (!token)
+      throw new Error("Not authenticated");
+
+    const res = await fetch(
+      `${API_BASE}/api/onboard`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          job_goal: formData.jobRole,
-          job_search_stage:
-            STAGE_TO_BACKEND[formData.jobStage] ?? "actively_searching",
-          anxiety_level: MOOD_TO_ANXIETY[formData.mood] ?? 5,
+          employment_status:
+            formData.employmentStatus === "employed"
+              ? "employed"
+              : formData.employmentStatus ===
+                "laid_off"
+              ? "laid_off"
+              : "unemployed",
+
+          unemployed_duration:
+            formData.employmentStatus ===
+            "employed"
+              ? null
+              : formData.searchTimeline,
+
+          job_timeline:
+            formData.targetTimeline,
+
+          target_role_category:
+            ROLE_MAP[formData.role] ?? "not_sure",
+
+          target_role_note:
+            formData.role,
+
+          company_types: [
+            COMPANY_MAP[formData.companyType],
+          ],
+
+          applications_sent_min:
+            formData.activity.applications,
+
+          applications_sent_max:
+            formData.activity.applications,
+
+          recruiter_contacts:
+            formData.activity.recruiterCalls,
+
+          first_round_interviews:
+            formData.activity.interviews,
+
+          final_round_interviews:
+            formData.activity.finalRounds,
+
+          offers:
+            formData.activity.offers,
+
+          emotional_challenge:
+            formData.emotionalChallenge,
+
+          baseline_anxiety:
+            formData.anxiety,
         }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Onboarding failed (${res.status}): ${text}`);
       }
+    );
 
-      router.push("/dashboard");
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong"
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data?.detail || "Onboarding failed"
+      );
+    }
+
+    console.log(
+      "Onboarding response:",
+      data
+    );
+
+    router.push("/dashboard");
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Something went wrong"
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
+  const renderStep = () => {
+  switch (currentStep) {
+    case 1:
+      return (
+        <Step1Employment
+          value={formData.employmentStatus}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              employmentStatus: value,
+            })
+          }
+        />
       );
 
-      setIsLoading(false);
+    case 2:
+      return (
+        <Step2SearchTimeline
+          value={formData.searchTimeline}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              searchTimeline: value,
+            })
+          }
+        />
+      );
+
+    case 3:
+      return (
+        <Step3TargetTimeline
+          value={formData.targetTimeline}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              targetTimeline: value,
+            })
+          }
+        />
+      );
+
+    case 4:
+      return (
+        <Step4RoleDirection
+          value={formData.role}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              role: value,
+            })
+          }
+        />
+      );
+
+    case 5:
+      return (
+        <Step5CompanyType
+          value={formData.companyType}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              companyType: value,
+            })
+          }
+        />
+      );
+
+    case 6:
+      return (
+        <Step6ActivityMetrics
+          value={formData.activity}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              activity: value,
+            })
+          }
+        />
+      );
+
+    case 7:
+      return (
+        <Step7EmotionChallenge
+          value={formData.emotionalChallenge}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              emotionalChallenge: value,
+            })
+          }
+        />
+      );
+
+    case 8:
+      return (
+        <Step8BaselineAnxiety
+          value={formData.anxiety}
+          onChange={(value) =>
+            setFormData({
+              ...formData,
+              anxiety: value,
+            })
+          }
+        />
+      );
+
+    case 9:
+      return (
+        <Step9Summary
+          formData={formData}
+          onComplete={handleSubmit}
+        />
+      );
+
+    default:
+      return null;
     }
   };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <Step1JobRole
-            value={formData.jobRole}
-            onChange={(value) =>
-              setFormData({
-                ...formData,
-                jobRole: value,
-              })
-            }
-          />
-        );
-
-      case 2:
-        return (
-          <Step2JobStage
-            value={formData.jobStage}
-            onChange={(value) =>
-              setFormData({
-                ...formData,
-                jobStage: value,
-              })
-            }
-          />
-        );
-
-      case 3:
-        return (
-          <Step3MoodSelection
-            value={formData.mood}
-            onChange={(value) =>
-              setFormData({
-                ...formData,
-                mood: value,
-              })
-            }
-          />
-        );
-
-      case 4:
-        return (
-          <Step4Plan
-            formData={formData}
-            onComplete={handleSubmit}
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -197,9 +354,7 @@ export default function OnboardingWizard() {
 
           {/* RIGHT */}
           <p className="text-sm text-[#686460]">
-            {STEP_CONFIG[currentStep]?.title} ·{" "}
-            {currentStep} of{" "}
-            {STEP_CONFIG[currentStep]?.totalSteps}
+           Step {currentStep} of {TOTAL_STEPS}
           </p>
         </div>
       </header>
@@ -209,7 +364,7 @@ export default function OnboardingWizard() {
         <div
           className="h-full bg-[#126658] transition-all duration-300"
           style={{
-            width: `${((currentStep - 1) / 3) * 100}%`,
+            width: `${((currentStep - 1) / 8) * 100}%`,
           }}
         />
       </div>
@@ -232,7 +387,7 @@ export default function OnboardingWizard() {
         )}
 
         {/* FOOTER BUTTONS */}
-        {currentStep < 4 && (
+        {currentStep < 9 && (
           <div className="border-t border-[#E7E5E4] bg-white px-8 py-5">
             <div className="mx-auto flex max-w-7xl items-center justify-between">
               
