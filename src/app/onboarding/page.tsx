@@ -109,12 +109,6 @@ export default function OnboardingWizard() {
   "Leadership / Executive": "leadership_executive",
   };
 
-  const TIMELINE_MAP: Record<string, string> = {
-  "As soon as possible": "asap",
-  "Within 3 months": "3m",
-  "Within 6 months": "6m",
-  "Within 12 months": "12m",
-  };
 
   const handleSubmit = async () => {
   if (isLoading) return;

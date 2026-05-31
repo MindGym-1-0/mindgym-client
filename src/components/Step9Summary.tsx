@@ -1,5 +1,22 @@
+interface FormData {
+  employmentStatus: string;
+  searchTimeline: string;
+  targetTimeline: string;
+  role: string;
+  companyType: string;
+  activity: {
+    applications: number;
+    recruiterCalls: number;
+    interviews: number;
+    finalRounds: number;
+    offers: number;
+  };
+  emotionalChallenge: string;
+  anxiety: number;
+}
+
 interface Props {
-  formData: any;
+  formData: FormData;
   onComplete: () => void;
 }
 
