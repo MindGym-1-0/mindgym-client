@@ -67,7 +67,7 @@ export default function AddInterviewPage() {
         <h1 className="text-3xl font-semibold">Add interview</h1>
       </div>
 
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-5">
 
         {error ? (
           <div className="rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
@@ -75,7 +75,9 @@ export default function AddInterviewPage() {
           </div>
         ) : null}
 
+        {/* Interview details */}
         <div className="rounded-2xl bg-white p-6 shadow-sm space-y-5">
+          <h2 className="font-semibold text-[#1D1D1D]">Interview details</h2>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -103,33 +105,35 @@ export default function AddInterviewPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Interview date & time <span className="text-[#A94442]">*</span>
-            </label>
-            <input
-              type="datetime-local"
-              value={interviewDate}
-              onChange={(e) => setInterviewDate(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#0D7C66]"
-            />
-          </div>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Interview date & time <span className="text-[#A94442]">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                value={interviewDate}
+                onChange={(e) => setInterviewDate(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#0D7C66]"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Interview type <span className="text-[#A94442]">*</span>
-            </label>
-            <select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#0D7C66]"
-            >
-              {EVENT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Interview type <span className="text-[#A94442]">*</span>
+              </label>
+              <select
+                value={eventType}
+                onChange={(e) => setEventType(e.target.value)}
+                className="mt-2 w-full rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#0D7C66]"
+              >
+                {EVENT_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div>
@@ -140,13 +144,33 @@ export default function AddInterviewPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any specific details or job description links here..."
-              className="mt-2 h-40 w-full resize-none rounded-xl border border-gray-300 p-4 focus:outline-none focus:ring-2 focus:ring-[#0D7C66]"
+              className="mt-2 h-32 w-full resize-none rounded-xl border border-gray-300 p-4 focus:outline-none focus:ring-2 focus:ring-[#0D7C66]"
             />
           </div>
-
         </div>
 
-        <div className="flex justify-end">
+        {/* File upload — coming soon */}
+        <div className="rounded-2xl bg-white p-6 shadow-sm">
+          <h2 className="mb-4 font-semibold text-[#1D1D1D]">
+            Attach a file <span className="text-sm font-normal text-gray-400">(optional)</span>
+          </h2>
+          <div className="rounded-xl border-2 border-dashed border-gray-300 p-10 text-center">
+            <div className="text-4xl mb-3">📤</div>
+            <p className="font-medium text-gray-700">Choose a file or drag and drop it here</p>
+            <p className="mt-1 text-sm text-gray-400">JPEG, PNG, PDF up to 30MB</p>
+            <button
+              type="button"
+              disabled
+              className="mt-5 rounded-lg border border-gray-300 px-5 py-2 text-sm text-gray-400 cursor-not-allowed"
+            >
+              Browse file
+            </button>
+            <p className="mt-3 text-xs text-gray-400">File upload coming soon</p>
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div className="flex justify-end pb-8">
           <button
             onClick={handleSave}
             disabled={isSaving}
