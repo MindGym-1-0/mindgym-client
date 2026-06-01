@@ -8,24 +8,9 @@ import type { CoachHomeResponse, RecommendedSession } from "../../../lib/coach/t
 import type { Interview } from "../../../lib/coach/api";
 
 const FALLBACK_SESSIONS: RecommendedSession[] = [
-  {
-    title: "Pre-interview calm reset",
-    duration_mins: 8,
-    focus: "Breathing + visualization",
-    session_type: "pre_interview_calm_reset",
-  },
-  {
-    title: "Confidence builder",
-    duration_mins: 10,
-    focus: "Grounding + anchor",
-    session_type: "confidence_builder",
-  },
-  {
-    title: "Think clearly under pressure",
-    duration_mins: 10,
-    focus: "Focus + mental clarity",
-    session_type: "think_clearly_under_pressure",
-  },
+  { title: "Pre-interview calm reset", duration_mins: 8, focus: "Breathing + visualization", session_type: "interview_tomorrow" },
+  { title: "Confidence builder", duration_mins: 10, focus: "Grounding + anchor", session_type: "general_reset" },
+  { title: "Think clearly under pressure", duration_mins: 10, focus: "Focus + mental clarity", session_type: "general_reset" },
 ];
 
 const FALLBACK_INSIGHTS = [
@@ -35,12 +20,40 @@ const FALLBACK_INSIGHTS = [
   "Morning sessions produce higher confidence lifts",
 ];
 
-const FALLBACK_GREETING =
-  "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared.";
+const INSIGHT_COLORS = ["#0D7C66", "#E59B00", "#C0392B", "#8E44AD"];
 
+const SESSION_EMOJIS: Record<string, string> = {
+  interview_tomorrow: "🧘",
+  general_reset: "💪",
+  recruiter_call: "📞",
+  networking: "🤝",
+  salary_negotiation: "💼",
+  rejection_recovery: "💔",
+  restarting_search: "🧠",
+};
+
+function getSessionEmoji(session_type: string): string {
+  return SESSION_EMOJIS[session_type] ?? "✨";
+}
+
+function formatInterviewDate(raw: string): string {
+  try {
+    const d = new Date(raw);
+    const now = new Date();
+    const diffDays = Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (diffDays === 0) return `Today · ${time}`;
+    if (diffDays === 1) return `Tomorrow · ${time}`;
+    return `${d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })} · ${time}`;
+  } catch {
+    return raw;
+  }
+}
+
+const FALLBACK_GREETING = "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared.";
 const FALLBACK_SUGGESTION = {
-  text: "A short breathing session tonight can improve tomorrow's composure.",
-  time_suggestion: "9:00 PM",
+  text: "A 5-min breathing session tonight at 9 PM. The night before has the highest impact on next-day composure.",
+  time_suggestion: "",
 };
 
 export default function CoachPage() {
@@ -55,7 +68,7 @@ export default function CoachPage() {
   useEffect(() => {
     let isActive = true;
 
-    async function loadCoachHome() {
+    async function load() {
       setIsLoading(true);
       setError(null);
 
@@ -82,11 +95,8 @@ export default function CoachPage() {
       }
     }
 
-    loadCoachHome();
-
-    return () => {
-      isActive = false;
-    };
+    load();
+    return () => { isActive = false; };
   }, []);
 
   const recommendedSessions = useMemo(() => {
@@ -99,25 +109,30 @@ export default function CoachPage() {
     return FALLBACK_INSIGHTS;
   }, [coachHome]);
 
-  const mayaGreeting = coachHome?.maya_greeting || `Hi ${name} - ${FALLBACK_GREETING}`;
+  const mayaGreeting = coachHome?.maya_greeting || `Hi ${name} 👋 — ${FALLBACK_GREETING}`;
   const suggestionText = coachHome?.maya_suggests?.text || FALLBACK_SUGGESTION.text;
-  const suggestionTime = coachHome?.maya_suggests?.time_suggestion || FALLBACK_SUGGESTION.time_suggestion;
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">
+      {/* Header */}
       <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-[#1D1D1D]">Maya - your coach</h1>
-        <p className="mt-1 text-gray-500">{isLoading ? "Loading your coach updates..." : "Active - Session 1"}</p>
+        <h1 className="text-2xl font-semibold text-[#1D1D1D]">Maya · your coach</h1>
+        <p className="mt-1 text-gray-500">
+          {isLoading ? "Loading your coach updates..." : "Active · Session 1"}
+        </p>
       </div>
 
       {error ? (
         <div className="mb-6 rounded-xl border border-[#F2C879] bg-[#FFF5E6] px-4 py-3 text-sm text-[#8B5E00]">{error}</div>
       ) : null}
 
+      {/* Main card */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0D7C66] text-white">M</div>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0D7C66] text-white font-medium">
+              M
+            </div>
             <div>
               <p className="leading-relaxed text-gray-700">{mayaGreeting}</p>
               <div className="mt-4 rounded-xl border border-[#F2C879] bg-[#FFF5E6] px-4 py-2 text-sm text-[#8B5E00]">
@@ -127,18 +142,17 @@ export default function CoachPage() {
           </div>
         </div>
 
+        {/* Interview card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm">
           {upcomingInterview ? (
             <>
               <p className="text-sm font-medium text-[#E59B00]">
-                {new Date(upcomingInterview.interview_date).toLocaleDateString([], {
-                  weekday: "long",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatInterviewDate(upcomingInterview.interview_date)}
+                {upcomingInterview.event_type ? ` · ${upcomingInterview.event_type.replace(/_/g, " ")}` : ""}
               </p>
               <h2 className="mt-2 text-lg font-semibold">{upcomingInterview.role}</h2>
-              <p className="mt-1 text-sm text-gray-500">{upcomingInterview.company}</p>
+              <p className="mt-0.5 text-sm font-medium text-gray-500">{upcomingInterview.company}</p>
+              <p className="mt-1 text-sm text-gray-400">You mentioned feeling anxious about thinking clearly on the spot.</p>
             </>
           ) : (
             <>
@@ -150,19 +164,13 @@ export default function CoachPage() {
           <div className="mt-6 flex gap-3">
             <button
               onClick={() => router.push("/coach/interview-checkin")}
-              className="rounded-lg bg-[#0D7C66] px-4 py-2 text-white hover:bg-[#095c4c]"
+              className="rounded-lg bg-[#0D7C66] px-4 py-2 text-sm text-white hover:bg-[#095c4c]"
             >
-              Start pre-interview session
+              Start pre-interview session →
             </button>
             <button
-              onClick={() =>
-                router.push(
-                  upcomingInterview
-                    ? `/coach/checklist?interview_id=${upcomingInterview.id}`
-                    : "/coach/interviews"
-                )
-              }
-              className="rounded-lg border border-gray-300 px-4 py-2"
+              onClick={() => router.push(upcomingInterview ? `/coach/checklist?interview_id=${upcomingInterview.id}` : "/coach/interviews")}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm"
             >
               View checklist
             </button>
@@ -170,17 +178,18 @@ export default function CoachPage() {
         </div>
       </div>
 
+      {/* Recommended Sessions */}
       <h2 className="mb-4 text-lg font-semibold">Recommended Sessions</h2>
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         {recommendedSessions.map((session, index) => (
           <div key={`${session.session_type}-${index}`} className="rounded-2xl bg-white p-6 shadow-sm">
-            <div className="text-4xl">*</div>
+            <div className="text-4xl">{getSessionEmoji(session.session_type)}</div>
             <h3 className="mt-4 text-lg font-semibold">{session.title}</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {session.duration_mins} min - {session.focus}
+              {session.duration_mins} min · {session.focus} · Maya guided
             </p>
             <button
-              className="mt-6 rounded-lg bg-[#0D7C66] px-4 py-2 text-white"
+              className="mt-6 rounded-lg bg-[#0D7C66] px-4 py-2 text-white hover:bg-[#095c4c]"
               data-session-type={session.session_type}
             >
               Start
@@ -189,18 +198,23 @@ export default function CoachPage() {
         ))}
       </div>
 
+      {/* Recommended Today */}
       <h2 className="mb-4 text-lg font-semibold">Recommended Today</h2>
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         {recommendedToday.map((tip, index) => (
           <div key={`${tip}-${index}`} className="rounded-xl bg-white p-4 text-sm text-gray-700 shadow-sm">
-            * {tip}
+            <span
+              className="mr-2 inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: INSIGHT_COLORS[index % INSIGHT_COLORS.length] }}
+            />
+            {tip}
           </div>
         ))}
       </div>
 
+      {/* Maya suggests */}
       <div className="rounded-xl border border-[#8DD8C4] bg-[#DFF5EF] p-4 text-sm text-[#065F46]">
         Maya suggests: {suggestionText}
-        {suggestionTime ? ` (${suggestionTime})` : ""}
       </div>
     </div>
   );
