@@ -63,6 +63,7 @@ export default function LoginPage() {
       const response = await fetch(loginUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
@@ -78,13 +79,16 @@ export default function LoginPage() {
         return;
       }
 
-      if (!data?.authenticated || !data.session?.access_token || !data.session?.refresh_token) {
+      if (!data?.authenticated) {
         setError("Sign-in did not complete. Please try again.");
         return;
       }
 
-      await establishSupabaseSession(data.session);
-      window.location.href = "/dashboard";
+      if (data.session?.access_token && data.session?.refresh_token) {
+        await establishSupabaseSession(data.session);
+      }
+
+      window.location.assign("/dashboard");
       return;
     } catch (err) {
       if (err instanceof Error && err.message) {
