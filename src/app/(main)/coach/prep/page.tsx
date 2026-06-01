@@ -251,7 +251,7 @@ export default function CoachPrepPage() {
               <div className="mt-6 flex justify-end">
                 <button
                   type="button"
-                  onClick={handleStartIntake}
+                  onClick={() => interviewId ? router.push(`/coach/checklist?interview_id=${interviewId}`) : router.push("/coach/interviews")}
                   className="rounded-xl bg-[#0D7C66] px-6 py-2.5 text-sm text-white hover:bg-[#095c4c]"
                 >
                   Start
