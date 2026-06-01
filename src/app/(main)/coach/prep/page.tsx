@@ -15,35 +15,34 @@ const WORRY_OPTIONS: WorryOption[] = [
   {
     label: "Panel anxiety",
     subtitle: "Multiple interviewers at once",
-    worryInput: "Panel anxiety"
+    worryInput: "Panel anxiety",
   },
   {
     label: "On-site pressure",
     subtitle: "Body language, commute stress, unknown space",
-    worryInput: "On-site pressure"
+    worryInput: "On-site pressure",
   },
   {
     label: "Imposter syndrome",
     subtitle: "Am I actually ready for this level?",
-    worryInput: "Imposter syndrome"
+    worryInput: "Imposter syndrome",
   },
   {
     label: "Portfolio review",
     subtitle: "Defending decisions in real time",
-    worryInput: "Portfolio review"
+    worryInput: "Portfolio review",
   },
   {
     label: "Blank mind on follow-up questions",
     subtitle: "Freezing when pushed to go deeper",
-    worryInput: "Blank mind on follow-up questions"
-  }
+    worryInput: "Blank mind on follow-up questions",
+  },
 ];
 
 function mapLoadError(error: unknown) {
   if (error instanceof CoachApiError && error.status >= 500) {
     return "Coach prep is temporarily unavailable. Please try again shortly.";
   }
-
   return "We couldn't load your prep plan right now.";
 }
 
@@ -51,19 +50,7 @@ function mapGenerateError(error: unknown) {
   if (error instanceof CoachApiError && error.status >= 500) {
     return "Plan generation is temporarily unavailable. Please try again shortly.";
   }
-
   return "We couldn't generate your prep plan. Please try again.";
-}
-
-async function startIntakeSession(sessionType: string) {
-  // TODO: call Jibin's POST /api/sessions/start when the client/contract is available.
-  if (process.env.NODE_ENV !== "production") {
-    console.info("[coach-prep] Start intake placeholder invoked.", {
-      session_type: sessionType
-    });
-  }
-
-  throw new Error("Session start integration is pending.");
 }
 
 export default function CoachPrepPage() {
@@ -74,10 +61,8 @@ export default function CoachPrepPage() {
   const [prepPlan, setPrepPlan] = useState<CoachPrepPlanResponse | null>(null);
   const [isLoadingPlan, setIsLoadingPlan] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isStartingIntake, setIsStartingIntake] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState<string | null>(null);
-  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -105,13 +90,11 @@ export default function CoachPrepPage() {
         setPrepPlan(data);
       } catch (error) {
         if (!isActive) return;
-
         if (error instanceof CoachApiError && error.status === 404) {
           setPrepPlan(null);
           setLoadError(null);
           return;
         }
-
         setLoadError(mapLoadError(error));
       } finally {
         if (!isActive) return;
@@ -139,7 +122,6 @@ export default function CoachPrepPage() {
     }
 
     setGenerateError(null);
-    setStartError(null);
     setIsGenerating(true);
 
     try {
@@ -149,21 +131,6 @@ export default function CoachPrepPage() {
       setGenerateError(mapGenerateError(error));
     } finally {
       setIsGenerating(false);
-    }
-  }
-
-  async function handleStartIntake() {
-    if (!prepPlan?.recommended_first_session?.session_type || isStartingIntake) return;
-
-    setStartError(null);
-    setIsStartingIntake(true);
-
-    try {
-      await startIntakeSession(prepPlan.recommended_first_session.session_type);
-    } catch {
-      setStartError("Intake start will be connected in the next integration step.");
-    } finally {
-      setIsStartingIntake(false);
     }
   }
 
@@ -177,16 +144,14 @@ export default function CoachPrepPage() {
         >
           {"<-"}
         </button>
-
         <div>
-          <h1 className="text-3xl font-semibold">Start prep - UX Lead @ Meta</h1>
-          <p className="text-gray-500">Thu 2:00 PM - On-site Panel - 8 days away</p>
+          <h1 className="text-3xl font-semibold">Start prep</h1>
+          <p className="text-gray-500">Generate your personalized prep plan</p>
         </div>
       </div>
 
       <div className="mb-8 rounded-2xl bg-white p-5 shadow-sm">
-        <p className="text-gray-700">&quot;8 days is a solid runway. Let&apos;s build your prep properly.&quot;</p>
-
+        <p className="text-gray-700">&quot;Let&apos;s build your prep properly.&quot;</p>
         <div className="mt-4 inline-block rounded-full bg-[#DFF5EF] px-4 py-2 text-sm text-[#0D7C66]">
           This creates a personalized prep plan for this interview
         </div>
@@ -240,7 +205,9 @@ export default function CoachPrepPage() {
             disabled={!canGenerateOrRegeneratePlan}
             className="mt-4 rounded-xl bg-[#0D7C66] px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isGenerating ? (hasSavedPlan ? "Regenerating prep plan..." : "Generating prep plan...") : hasSavedPlan ? "Regenerate prep plan" : "Generate prep plan"}
+            {isGenerating
+              ? hasSavedPlan ? "Regenerating prep plan..." : "Generating prep plan..."
+              : hasSavedPlan ? "Regenerate prep plan" : "Generate prep plan"}
           </button>
 
           {generateError ? <p className="mt-3 text-sm text-[#A94442]">{generateError}</p> : null}
@@ -253,16 +220,14 @@ export default function CoachPrepPage() {
             <div className="space-y-4">
               {planItems.map((step, index) => (
                 <div key={`${step.day}-${step.session_type}-${index}`} className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0D7C66] text-sm text-white">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0D7C66] text-sm text-white">
                     {step.day}
                   </div>
-
                   <div>
                     <p className="font-medium text-[#1D1D1D]">{step.task}</p>
                     <p className="text-sm text-gray-500">
                       {step.description} - {step.duration_mins} min
                     </p>
-                    <p className="text-xs text-gray-400">session_type: {step.session_type}</p>
                   </div>
                 </div>
               ))}
@@ -272,7 +237,9 @@ export default function CoachPrepPage() {
           )}
 
           {prepPlan?.coach_note ? (
-            <div className="mt-5 rounded-xl border border-[#8DD8C4] bg-[#DFF5EF] p-3 text-sm text-[#065F46]">{prepPlan.coach_note}</div>
+            <div className="mt-5 rounded-xl border border-[#8DD8C4] bg-[#DFF5EF] p-3 text-sm text-[#065F46]">
+              {prepPlan.coach_note}
+            </div>
           ) : null}
 
           {prepPlan?.recommended_first_session ? (
@@ -284,21 +251,16 @@ export default function CoachPrepPage() {
               <p className="mt-1 text-sm text-[#CFE7E0]">{prepPlan.recommended_first_session.reason}</p>
               <button
                 type="button"
-                onClick={handleStartIntake}
-                disabled={isStartingIntake}
-                data-session-type={prepPlan.recommended_first_session.session_type}
-                className="mt-4 rounded-xl border border-[#7FB8AA] px-5 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-4 rounded-xl border border-[#7FB8AA] px-5 py-2 text-white"
               >
-                {isStartingIntake ? "Starting..." : "Start intake session ->"}
+                Start intake session -&gt;
               </button>
             </div>
           ) : (
-            <button className="mt-8 rounded-xl bg-[#0D7C66] px-6 py-3 text-white" disabled>
+            <button className="mt-8 rounded-xl bg-[#0D7C66] px-6 py-3 text-white opacity-50" disabled>
               Start
             </button>
           )}
-
-          {startError ? <p className="mt-3 text-sm text-[#A94442]">{startError}</p> : null}
         </div>
       </div>
     </div>
