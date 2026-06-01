@@ -3,35 +3,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
-import { getCoachHome } from "../../../lib/coach/api";
+import { getCoachHome, getInterviews } from "../../../lib/coach/api";
 import type { CoachHomeResponse, RecommendedSession } from "../../../lib/coach/types";
+import type { Interview } from "../../../lib/coach/api";
 
 const FALLBACK_SESSIONS: RecommendedSession[] = [
   {
     title: "Pre-interview calm reset",
     duration_mins: 8,
     focus: "Breathing + visualization",
-    session_type: "pre_interview_calm_reset"
+    session_type: "pre_interview_calm_reset",
   },
   {
     title: "Confidence builder",
     duration_mins: 10,
     focus: "Grounding + anchor",
-    session_type: "confidence_builder"
+    session_type: "confidence_builder",
   },
   {
     title: "Think clearly under pressure",
     duration_mins: 10,
     focus: "Focus + mental clarity",
-    session_type: "think_clearly_under_pressure"
-  }
+    session_type: "think_clearly_under_pressure",
+  },
 ];
 
 const FALLBACK_INSIGHTS = [
   "Strongest area: motivation and persistence",
   "Growth area: thinking clearly under pressure",
   "Pattern: anxiety spikes the night before interviews",
-  "Morning sessions produce higher confidence lifts"
+  "Morning sessions produce higher confidence lifts",
 ];
 
 const FALLBACK_GREETING =
@@ -39,7 +40,7 @@ const FALLBACK_GREETING =
 
 const FALLBACK_SUGGESTION = {
   text: "A short breathing session tonight can improve tomorrow's composure.",
-  time_suggestion: "9:00 PM"
+  time_suggestion: "9:00 PM",
 };
 
 export default function CoachPage() {
@@ -47,6 +48,7 @@ export default function CoachPage() {
   const router = useRouter();
 
   const [coachHome, setCoachHome] = useState<CoachHomeResponse | null>(null);
+  const [upcomingInterview, setUpcomingInterview] = useState<Interview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,12 +60,22 @@ export default function CoachPage() {
       setError(null);
 
       try {
-        const data = await getCoachHome();
+        const [homeData, interviewsData] = await Promise.allSettled([
+          getCoachHome(),
+          getInterviews(),
+        ]);
+
         if (!isActive) return;
-        setCoachHome(data);
-      } catch {
-        if (!isActive) return;
-        setError("We couldn't load coach updates right now. Showing your latest saved guidance.");
+
+        if (homeData.status === "fulfilled") {
+          setCoachHome(homeData.value);
+        } else {
+          setError("We couldn't load coach updates right now. Showing your latest saved guidance.");
+        }
+
+        if (interviewsData.status === "fulfilled") {
+          setUpcomingInterview(interviewsData.value.upcoming?.[0] ?? null);
+        }
       } finally {
         if (!isActive) return;
         setIsLoading(false);
@@ -106,10 +118,8 @@ export default function CoachPage() {
         <div className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2">
           <div className="flex gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0D7C66] text-white">M</div>
-
             <div>
               <p className="leading-relaxed text-gray-700">{mayaGreeting}</p>
-
               <div className="mt-4 rounded-xl border border-[#F2C879] bg-[#FFF5E6] px-4 py-2 text-sm text-[#8B5E00]">
                 Friendly mode: warm and encouraging tone throughout your session
               </div>
@@ -118,9 +128,24 @@ export default function CoachPage() {
         </div>
 
         <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-[#E59B00]">Tomorrow - 10:00 AM</p>
-          <h2 className="mt-2 text-lg font-semibold">Product Designer</h2>
-          <p className="mt-1 text-sm text-gray-500">You mentioned feeling anxious about thinking clearly on the spot.</p>
+          {upcomingInterview ? (
+            <>
+              <p className="text-sm font-medium text-[#E59B00]">
+                {new Date(upcomingInterview.interview_date).toLocaleDateString([], {
+                  weekday: "long",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              <h2 className="mt-2 text-lg font-semibold">{upcomingInterview.role}</h2>
+              <p className="mt-1 text-sm text-gray-500">{upcomingInterview.company}</p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-[#E59B00]">No upcoming interviews</p>
+              <h2 className="mt-2 text-lg font-semibold">Add an interview to start prep</h2>
+            </>
+          )}
 
           <div className="mt-6 flex gap-3">
             <button
@@ -129,9 +154,14 @@ export default function CoachPage() {
             >
               Start pre-interview session
             </button>
-
             <button
-              onClick={() => router.push("/coach/checklist")}
+              onClick={() =>
+                router.push(
+                  upcomingInterview
+                    ? `/coach/checklist?interview_id=${upcomingInterview.id}`
+                    : "/coach/interviews"
+                )
+              }
               className="rounded-lg border border-gray-300 px-4 py-2"
             >
               View checklist

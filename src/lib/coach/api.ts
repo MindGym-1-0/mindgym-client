@@ -2,7 +2,8 @@ import { buildApiUrl } from "../auth/api";
 import type {
   CoachHomeResponse,
   CoachPrepPlanRequest,
-  CoachPrepPlanResponse
+  CoachPrepPlanResponse,
+  InterviewChecklistResponse,
 } from "./types";
 
 type ApiErrorPayload = {
@@ -24,7 +25,6 @@ export class CoachApiError extends Error {
 
 function readPayloadMessage(payload: unknown) {
   if (!payload || typeof payload !== "object") return null;
-
   const candidate = payload as ApiErrorPayload;
   if (typeof candidate.error === "string" && candidate.error.trim()) return candidate.error;
   if (typeof candidate.message === "string" && candidate.message.trim()) return candidate.message;
@@ -137,13 +137,9 @@ async function throwCoachApiError(response: Response) {
 export async function getCoachHome(): Promise<CoachHomeResponse> {
   const response = await fetch(buildApiUrl("/api/coach/home"), {
     method: "GET",
-    credentials: "include"
+    credentials: "include",
   });
-
-  if (!response.ok) {
-    await throwCoachApiError(response);
-  }
-
+  if (!response.ok) await throwCoachApiError(response);
   const payload = await parseJsonSafely(response);
   assertCoachHomeResponse(payload);
   return payload;
@@ -153,13 +149,9 @@ export async function getCoachPrepPlan(interviewId: string): Promise<CoachPrepPl
   const encodedInterviewId = encodeURIComponent(interviewId);
   const response = await fetch(buildApiUrl(`/api/coach/prep-plan/${encodedInterviewId}`), {
     method: "GET",
-    credentials: "include"
+    credentials: "include",
   });
-
-  if (!response.ok) {
-    await throwCoachApiError(response);
-  }
-
+  if (!response.ok) await throwCoachApiError(response);
   const payload = await parseJsonSafely(response);
   assertCoachPrepPlanResponse(payload);
   return payload;
@@ -171,23 +163,53 @@ export async function createCoachPrepPlan(
 ): Promise<CoachPrepPlanResponse> {
   const requestBody: CoachPrepPlanRequest = {
     interview_id: interviewId,
-    worry_input: worryInput
+    worry_input: worryInput,
   };
-
   const response = await fetch(buildApiUrl("/api/coach/prep-plan"), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(requestBody)
+    body: JSON.stringify(requestBody),
   });
-
-  if (!response.ok) {
-    await throwCoachApiError(response);
-  }
-
+  if (!response.ok) await throwCoachApiError(response);
   const payload = await parseJsonSafely(response);
   assertCoachPrepPlanResponse(payload);
   return payload;
+}
+
+export async function getInterviewChecklist(interviewId: string): Promise<InterviewChecklistResponse> {
+  const response = await fetch(buildApiUrl("/api/coach/checklist"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ interview_id: interviewId }),
+  });
+  if (!response.ok) await throwCoachApiError(response);
+  const payload = await parseJsonSafely(response);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Malformed checklist response.");
+  }
+  return payload as InterviewChecklistResponse;
+}
+
+export type Interview = {
+  id: string;
+  company: string;
+  role: string;
+  interview_date: string;
+  event_type?: string;
+  job_id?: string | null;
+};
+
+export async function getInterviews(): Promise<{ upcoming: Interview[]; past: Interview[] }> {
+  const response = await fetch(buildApiUrl("/api/interviews"), {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!response.ok) await throwCoachApiError(response);
+  const payload = await parseJsonSafely(response);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Malformed interviews response.");
+  }
+  return payload as { upcoming: Interview[]; past: Interview[] };
 }

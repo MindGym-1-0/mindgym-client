@@ -43,3 +43,35 @@ export type CoachPrepPlanRequest = {
   interview_id: string;
   worry_input: string;
 };
+
+export type ChecklistItem = {
+  id: string;
+  label: string;
+  checked: boolean;
+  metadata: Record<string, unknown>;
+};
+
+export type TonightsPlanTask = {
+  time: string;
+  task: string;
+};
+
+export type OverallReadiness = {
+  score: number;
+  total_items: number;
+  label: string;
+  message: string;
+  confidence_baseline: number;
+};
+
+export type InterviewChecklistResponse = {
+  overall_readiness: OverallReadiness;
+  mental_prep: ChecklistItem[];
+  logistics: ChecklistItem[];
+  tonights_plan: TonightsPlanTask[];
+  quote: string;
+};
+
+export type ChecklistRequest = {
+  interview_id: string;
+};
