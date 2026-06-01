@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { CoachApiError, createCoachPrepPlan, getCoachPrepPlan, getInterviews } from "../../../../lib/coach/api";
 import type { CoachPrepPlanResponse } from "../../../../lib/coach/types";
 import type { Interview } from "../../../../lib/coach/api";
+import { writeSetup } from "../../../../lib/session/store";
 
 const WORRY_OPTIONS = [
-  { label: "Panel anxiety", subtitle: "Multiple interviewers at once", worryInput: "Panel anxiety" },
-  { label: "On-site pressure", subtitle: "Body language, commute stress, unknown space", worryInput: "On-site pressure" },
-  { label: "Imposter syndrome", subtitle: "Am I actually ready for this level?", worryInput: "Imposter syndrome" },
-  { label: "Portfolio review", subtitle: "Defending decisions in real time", worryInput: "Portfolio review" },
+  { label: "Panel anxiety", subtitle: "Hard to read the room with 4+ people watching", worryInput: "Panel anxiety" },
+  { label: "On-site pressure vs video", subtitle: "Body language, commute stress, unknown space", worryInput: "On-site pressure" },
+  { label: "Imposter syndrome at this seniority", subtitle: "UX Lead is a step up — am I actually ready?", worryInput: "Imposter syndrome" },
+  { label: "Portfolio review under scrutiny", subtitle: "Defending design decisions in real time", worryInput: "Portfolio review" },
   { label: "Blank mind on follow-up questions", subtitle: "Freezing when pushed to go deeper", worryInput: "Blank mind on follow-up questions" },
 ];
 
@@ -82,8 +83,7 @@ export default function CoachPrepPage() {
 
         if (interviewsResult.status === "fulfilled") {
           const all = [...interviewsResult.value.upcoming, ...interviewsResult.value.past];
-          const found = all.find((i) => i.id === interviewId) ?? null;
-          setInterview(found);
+          setInterview(all.find((i) => i.id === interviewId) ?? null);
         }
       } finally {
         if (!isActive) return;
@@ -98,6 +98,7 @@ export default function CoachPrepPage() {
   const planItems = useMemo(() => prepPlan?.plan ?? [], [prepPlan]);
   const hasSavedPlan = Boolean(prepPlan);
   const canGenerate = Boolean(interviewId) && !isGenerating;
+  const sessionsDone = 0;
 
   async function handleGeneratePlan() {
     if (!interviewId || isGenerating) return;
@@ -113,32 +114,42 @@ export default function CoachPrepPage() {
     }
   }
 
-  const interviewTitle = interview
-    ? `${interview.role} @ ${interview.company}`
-    : "Your interview";
+  function handleStartIntake() {
+    if (interview) {
+      writeSetup({
+        preparation_for: "interview_tomorrow",
+        company: interview.company,
+        role: interview.role,
+      });
+    }
+    router.push("/sessions/setup/emotions");
+  }
 
-  const interviewMeta = interview ? formatInterviewMeta(interview) : "";
+  const interviewTitle = interview ? `${interview.role} @ ${interview.company}` : "Your interview";
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">
-      {/* Header */}
-      <div className="mb-2 flex items-center gap-4">
-        <button onClick={() => router.back()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow" aria-label="Go back">
-          ←
-        </button>
-        <div>
-          <p className="text-sm text-gray-500">Coach prep · My Interviews</p>
-          <h1 className="text-2xl font-semibold text-[#1D1D1D]">Start prep — {interviewTitle}</h1>
-          {interviewMeta ? <p className="text-sm text-gray-500">{interviewMeta}</p> : null}
+      <div className="mb-6 flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.back()} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow" aria-label="Go back">
+            ←
+          </button>
+          <div>
+            <p className="text-sm text-gray-500">Coach prep · My Interviews</p>
+            <h1 className="text-2xl font-semibold text-[#1D1D1D]">Start prep — {interviewTitle}</h1>
+            {interview ? <p className="text-sm text-gray-500">{formatInterviewMeta(interview)}</p> : null}
+          </div>
+        </div>
+        <div className="rounded-full bg-[#FFF5E6] px-3 py-1 text-xs font-medium text-[#E59B00]">
+          {hasSavedPlan ? `${sessionsDone} sessions done` : "Not started · 0 sessions done"}
         </div>
       </div>
 
-      {/* Maya quote */}
-      <div className="mb-6 mt-4 rounded-2xl bg-white p-5 shadow-sm">
+      <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
         <p className="text-gray-700">
           &quot;{hasSavedPlan
             ? `Here's your saved prep plan for ${interviewTitle}. You can adjust your worry and regenerate if needed.`
-            : `Let's build your prep properly — starting with what's actually worrying you about this one.`}&quot;
+            : `8 days is a solid runway. Let's build your prep properly — starting with what's actually worrying you about this one.`}&quot;
         </p>
         <div className="mt-3 inline-block rounded-full bg-[#DFF5EF] px-4 py-1.5 text-sm text-[#0D7C66]">
           This creates a personalized prep plan for {interview?.company ?? "this interview"}
@@ -160,11 +171,10 @@ export default function CoachPrepPage() {
       ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left — worries */}
         <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-[#1D1D1D]">What worries you the most about this one?</h2>
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">What worries you the most about this one?</h2>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {WORRY_OPTIONS.map((item) => {
               const isSelected = selectedWorry === item.worryInput;
               return (
@@ -173,12 +183,14 @@ export default function CoachPrepPage() {
                   key={item.worryInput}
                   onClick={() => setSelectedWorry(item.worryInput)}
                   disabled={isGenerating}
-                  className={`w-full rounded-xl border p-4 text-left transition ${
-                    isSelected ? "border-[#0D7C66] bg-[#E8F7F2]" : "border-gray-200 hover:border-gray-300"
+                  className={`w-full rounded-xl border-l-4 p-4 text-left transition ${
+                    isSelected
+                      ? "border-l-[#0D7C66] bg-[#E8F7F2]"
+                      : "border-l-transparent bg-gray-50 hover:bg-gray-100"
                   }`}
                 >
                   <p className="font-medium text-[#1D1D1D]">{item.label}</p>
-                  {isSelected ? <p className="mt-0.5 text-sm text-[#0D7C66]">{item.subtitle}</p> : null}
+                  <p className="mt-0.5 text-sm text-gray-500">{item.subtitle}</p>
                 </button>
               );
             })}
@@ -202,11 +214,10 @@ export default function CoachPrepPage() {
           {generateError ? <p className="mt-3 text-sm text-[#A94442]">{generateError}</p> : null}
         </div>
 
-        {/* Right — plan */}
         <div className="flex flex-col gap-4">
           <div className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="mb-5 font-semibold text-[#1D1D1D]">
-              Maya&apos;s {interview ? `${planItems.length || 5} day` : ""} prep plan
+            <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Maya&apos;s {planItems.length > 0 ? `${planItems.length} day` : "5 day"} prep plan
             </h2>
 
             {planItems.length > 0 ? (
@@ -224,8 +235,29 @@ export default function CoachPrepPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Select a worry and generate your personalized plan.</p>
+              <div className="space-y-4">
+                {["Today — anxiety intake", "Day 2–3 — panel room visualisation", "Day 4–5 — seniority confidence anchor", "Day 6–7 — portfolio walk-through calm", "Morning of — 10 min calm reset"].map((label, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-sm text-gray-400">
+                      {i + 1}
+                    </div>
+                    <p className="mt-1 text-sm text-gray-400">{label}</p>
+                  </div>
+                ))}
+              </div>
             )}
+
+            {planItems.length > 0 ? (
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleStartIntake}
+                  className="rounded-xl bg-[#0D7C66] px-6 py-2.5 text-sm text-white hover:bg-[#095c4c]"
+                >
+                  Start
+                </button>
+              </div>
+            ) : null}
           </div>
 
           {prepPlan?.coach_note ? (
@@ -237,16 +269,23 @@ export default function CoachPrepPage() {
           {prepPlan?.recommended_first_session ? (
             <div className="rounded-2xl bg-[#0B3F35] p-5 text-white">
               <p className="text-xs font-semibold uppercase tracking-widest text-[#9BD6C8]">Ready to begin</p>
-              <p className="mt-2 text-lg font-semibold">
-                Start with {prepPlan.recommended_first_session.session_type.replaceAll("_", " ")} ({prepPlan.recommended_first_session.duration_mins} min)
-              </p>
-              <p className="mt-1 text-sm text-[#CFE7E0]">{prepPlan.recommended_first_session.reason}</p>
-              <button
-                type="button"
-                className="mt-4 w-full rounded-xl border border-[#7FB8AA] py-3 text-white hover:bg-[#0D5446] transition"
-              >
-                Start intake session →
-              </button>
+              <div className="mt-3 flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-semibold">
+                    Start with your anxiety intake — {prepPlan.recommended_first_session.duration_mins} minutes, right now.
+                  </p>
+                  <p className="mt-1 text-sm text-[#CFE7E0]">
+                    Maya will personalise the rest of the plan from what you share.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleStartIntake}
+                  className="shrink-0 rounded-xl border border-[#7FB8AA] px-5 py-2.5 text-sm text-white hover:bg-[#0D5446] transition"
+                >
+                  Start intake session →
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

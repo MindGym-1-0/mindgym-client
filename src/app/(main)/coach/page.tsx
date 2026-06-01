@@ -6,6 +6,7 @@ import { useUserName } from "@/hooks/useUserName";
 import { getCoachHome, getInterviews } from "../../../lib/coach/api";
 import type { CoachHomeResponse, RecommendedSession } from "../../../lib/coach/types";
 import type { Interview } from "../../../lib/coach/api";
+import { writeSetup } from "../../../lib/session/store";
 
 const FALLBACK_SESSIONS: RecommendedSession[] = [
   { title: "Pre-interview calm reset", duration_mins: 8, focus: "Breathing + visualization", session_type: "interview_tomorrow" },
@@ -30,6 +31,9 @@ const SESSION_EMOJIS: Record<string, string> = {
   salary_negotiation: "💼",
   rejection_recovery: "💔",
   restarting_search: "🧠",
+  pre_interview_calm_reset: "🧘",
+  confidence_builder: "💪",
+  think_clearly_under_pressure: "🧠",
 };
 
 function getSessionEmoji(session_type: string): string {
@@ -50,10 +54,9 @@ function formatInterviewDate(raw: string): string {
   }
 }
 
-const FALLBACK_GREETING = "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared.";
+const FALLBACK_GREETING = "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared. Which session would you like to start with?";
 const FALLBACK_SUGGESTION = {
   text: "A 5-min breathing session tonight at 9 PM. The night before has the highest impact on next-day composure.",
-  time_suggestion: "",
 };
 
 export default function CoachPage() {
@@ -109,14 +112,26 @@ export default function CoachPage() {
     return FALLBACK_INSIGHTS;
   }, [coachHome]);
 
-  const mayaGreeting = coachHome?.maya_greeting || `Hi ${name} 👋 — ${FALLBACK_GREETING}`;
+  const mayaGreeting = coachHome?.maya_greeting
+    ? `${coachHome.maya_greeting} Which session would you like to start with?`
+    : `Hi ${name} 👋 — ${FALLBACK_GREETING}`;
   const suggestionText = coachHome?.maya_suggests?.text || FALLBACK_SUGGESTION.text;
+
+  function handleStartSession() {
+    if (upcomingInterview) {
+      writeSetup({
+        preparation_for: "interview_tomorrow",
+        company: upcomingInterview.company,
+        role: upcomingInterview.role,
+      });
+    }
+    router.push("/sessions/setup/emotions");
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">
-      {/* Header */}
       <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-[#1D1D1D]">Maya · your coach</h1>
+        <h1 className="text-2xl font-semibold text-[#1D1D1D]">Maya • your coach</h1>
         <p className="mt-1 text-gray-500">
           {isLoading ? "Loading your coach updates..." : "Active · Session 1"}
         </p>
@@ -126,11 +141,10 @@ export default function CoachPage() {
         <div className="mb-6 rounded-xl border border-[#F2C879] bg-[#FFF5E6] px-4 py-3 text-sm text-[#8B5E00]">{error}</div>
       ) : null}
 
-      {/* Main card */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-2xl bg-white p-6 shadow-sm lg:col-span-2">
           <div className="flex gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0D7C66] text-white font-medium">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0D7C66] font-medium text-white">
               M
             </div>
             <div>
@@ -142,7 +156,6 @@ export default function CoachPage() {
           </div>
         </div>
 
-        {/* Interview card */}
         <div className="rounded-2xl bg-white p-6 shadow-sm">
           {upcomingInterview ? (
             <>
@@ -163,7 +176,7 @@ export default function CoachPage() {
 
           <div className="mt-6 flex gap-3">
             <button
-              onClick={() => router.push("/coach/interview-checkin")}
+              onClick={handleStartSession}
               className="rounded-lg bg-[#0D7C66] px-4 py-2 text-sm text-white hover:bg-[#095c4c]"
             >
               Start pre-interview session →
@@ -178,7 +191,6 @@ export default function CoachPage() {
         </div>
       </div>
 
-      {/* Recommended Sessions */}
       <h2 className="mb-4 text-lg font-semibold">Recommended Sessions</h2>
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         {recommendedSessions.map((session, index) => (
@@ -189,6 +201,7 @@ export default function CoachPage() {
               {session.duration_mins} min · {session.focus} · Maya guided
             </p>
             <button
+              onClick={handleStartSession}
               className="mt-6 rounded-lg bg-[#0D7C66] px-4 py-2 text-white hover:bg-[#095c4c]"
               data-session-type={session.session_type}
             >
@@ -198,7 +211,6 @@ export default function CoachPage() {
         ))}
       </div>
 
-      {/* Recommended Today */}
       <h2 className="mb-4 text-lg font-semibold">Recommended Today</h2>
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         {recommendedToday.map((tip, index) => (
@@ -212,7 +224,6 @@ export default function CoachPage() {
         ))}
       </div>
 
-      {/* Maya suggests */}
       <div className="rounded-xl border border-[#8DD8C4] bg-[#DFF5EF] p-4 text-sm text-[#065F46]">
         Maya suggests: {suggestionText}
       </div>

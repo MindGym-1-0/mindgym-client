@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { writeSetup } from "@/lib/session/store";
+import { writeSetup, readSetup } from "@/lib/session/store";
 
 const TYPES = [
   { label: "Interview tomorrow", value: "interview_tomorrow" },
@@ -19,6 +19,17 @@ const MODE1 = new Set(["interview_tomorrow", "recruiter_call"]);
 export default function PrepTypePage() {
   const router = useRouter();
   const [selected, setSelected] = useState("");
+
+  useEffect(() => {
+    const setup = readSetup();
+    if (setup.preparation_for) {
+      router.replace(
+        MODE1.has(setup.preparation_for)
+          ? "/sessions/setup/interview-details"
+          : "/sessions/setup/feelings"
+      );
+    }
+  }, [router]);
 
   const handleContinue = () => {
     if (!selected) return;
