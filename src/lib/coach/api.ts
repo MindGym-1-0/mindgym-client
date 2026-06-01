@@ -1,3 +1,4 @@
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { buildApiUrl } from "../auth/api";
 import type {
   CoachHomeResponse,
@@ -21,6 +22,15 @@ export class CoachApiError extends Error {
     this.status = status;
     this.payload = payload;
   }
+}
+
+async function getToken(): Promise<string> {
+  const supabase = getSupabaseBrowserClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) return session.access_token;
+  const { data: { session: refreshed } } = await supabase.auth.refreshSession();
+  if (refreshed?.access_token) return refreshed.access_token;
+  throw new Error("Not authenticated");
 }
 
 function readPayloadMessage(payload: unknown) {
@@ -135,9 +145,10 @@ async function throwCoachApiError(response: Response) {
 }
 
 export async function getCoachHome(): Promise<CoachHomeResponse> {
+  const token = await getToken();
   const response = await fetch(buildApiUrl("/api/coach/home"), {
     method: "GET",
-    credentials: "include",
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) await throwCoachApiError(response);
   const payload = await parseJsonSafely(response);
@@ -146,10 +157,11 @@ export async function getCoachHome(): Promise<CoachHomeResponse> {
 }
 
 export async function getCoachPrepPlan(interviewId: string): Promise<CoachPrepPlanResponse> {
+  const token = await getToken();
   const encodedInterviewId = encodeURIComponent(interviewId);
   const response = await fetch(buildApiUrl(`/api/coach/prep-plan/${encodedInterviewId}`), {
     method: "GET",
-    credentials: "include",
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) await throwCoachApiError(response);
   const payload = await parseJsonSafely(response);
@@ -161,14 +173,17 @@ export async function createCoachPrepPlan(
   interviewId: string,
   worryInput: string
 ): Promise<CoachPrepPlanResponse> {
+  const token = await getToken();
   const requestBody: CoachPrepPlanRequest = {
     interview_id: interviewId,
     worry_input: worryInput,
   };
   const response = await fetch(buildApiUrl("/api/coach/prep-plan"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(requestBody),
   });
   if (!response.ok) await throwCoachApiError(response);
@@ -178,10 +193,13 @@ export async function createCoachPrepPlan(
 }
 
 export async function getInterviewChecklist(interviewId: string): Promise<InterviewChecklistResponse> {
+  const token = await getToken();
   const response = await fetch(buildApiUrl("/api/coach/checklist"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ interview_id: interviewId }),
   });
   if (!response.ok) await throwCoachApiError(response);
@@ -202,9 +220,10 @@ export type Interview = {
 };
 
 export async function getInterviews(): Promise<{ upcoming: Interview[]; past: Interview[] }> {
+  const token = await getToken();
   const response = await fetch(buildApiUrl("/api/interviews"), {
     method: "GET",
-    credentials: "include",
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) await throwCoachApiError(response);
   const payload = await parseJsonSafely(response);
@@ -212,4 +231,29 @@ export async function getInterviews(): Promise<{ upcoming: Interview[]; past: In
     throw new Error("Malformed interviews response.");
   }
   return payload as { upcoming: Interview[]; past: Interview[] };
+}
+
+export async function createInterview(data: {
+  company: string;
+  role: string;
+  interview_date: string;
+  event_type?: string;
+  job_id?: string;
+  notes?: string;
+}): Promise<Interview> {
+  const token = await getToken();
+  const response = await fetch(buildApiUrl("/api/interviews"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) await throwCoachApiError(response);
+  const payload = await parseJsonSafely(response);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Malformed create interview response.");
+  }
+  return payload as Interview;
 }
