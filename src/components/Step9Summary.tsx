@@ -24,6 +24,7 @@ interface Props {
 export function Step9Summary({
   formData,
   onComplete,
+  onDashboard,
 }: Props) {
   const anxietyLevel =
     formData.anxiety >= 8
@@ -164,12 +165,18 @@ export function Step9Summary({
       </div>
 
       {/* CTA */}
-      <div className="text-center pt-2">
+      <div className="flex flex-col items-center gap-3 pt-2">
         <button
           onClick={onComplete}
           className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-xl font-semibold transition-all"
         >
           Begin my first session →
+        </button>
+        <button
+          onClick={onDashboard}
+          className="text-teal-600 hover:text-teal-700 px-8 py-2 text-sm font-medium transition-all"
+        >
+          Go to dashboard
         </button>
       </div>
     </div>
