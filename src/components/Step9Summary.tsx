@@ -18,6 +18,7 @@ interface FormData {
 interface Props {
   formData: FormData;
   onComplete: () => void;
+  onDashboard: () => void;
 }
 
 export function Step9Summary({

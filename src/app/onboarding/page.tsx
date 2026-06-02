@@ -267,6 +267,7 @@ export default function OnboardingWizard() {
           <Step9Summary
             formData={formData}
             onComplete={handleSubmit}
+            onDashboard={() => router.push("/dashboard")}
           />
         );
       default:
