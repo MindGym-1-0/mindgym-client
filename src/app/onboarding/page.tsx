@@ -13,6 +13,7 @@ import { Step8BaselineAnxiety } from "@/components/Step8BaselineAnxiety";
 import { Step9Summary } from "@/components/Step9Summary";
 
 import { supabase } from "@/lib/supabase/client";
+import { writeActive } from "@/lib/session/store";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 
@@ -178,7 +179,12 @@ export default function OnboardingWizard() {
         throw new Error(data?.detail || "Onboarding failed");
       }
 
-      router.push("/dashboard");
+      writeActive({
+        session_id: data.first_session.session_id,
+        script: data.first_session.script,
+        anxiety_level_before: formData.anxiety,
+      });
+      router.push("/sessions/active");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong"
