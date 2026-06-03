@@ -118,6 +118,61 @@ export default function OnboardingWizard() {
     }
   };
 
+  const handleSaveAndGoToDashboard = async () => {
+    if (isLoading) return;
+    try {
+      setIsLoading(true);
+      setError("");
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+
+      const res = await fetch(`${API_BASE}/api/onboard/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          employment_status:
+            formData.employmentStatus === "employed"
+              ? "employed"
+              : formData.employmentStatus === "laid_off"
+              ? "laid_off"
+              : "unemployed",
+          unemployed_duration:
+            formData.employmentStatus === "employed"
+              ? null
+              : formData.searchTimeline,
+          job_timeline:
+            TIMELINE_MAP[formData.targetTimeline] ?? formData.targetTimeline,
+          target_role_category: ROLE_MAP[formData.role] ?? "not_sure",
+          target_role_note: formData.role,
+          company_types: [COMPANY_MAP[formData.companyType]],
+          applications_sent_min: formData.activity.applications,
+          applications_sent_max: formData.activity.applications,
+          recruiter_contacts: formData.activity.recruiterCalls,
+          first_round_interviews: formData.activity.interviews,
+          final_round_interviews: formData.activity.finalRounds,
+          offers: formData.activity.offers,
+          emotional_challenge:
+            CHALLENGE_MAP[formData.emotionalChallenge] ?? formData.emotionalChallenge,
+          baseline_anxiety: formData.anxiety,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.detail || "Failed to save onboarding");
+
+      router.push("/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (isLoading) return;
 
@@ -273,7 +328,7 @@ export default function OnboardingWizard() {
           <Step9Summary
             formData={formData}
             onComplete={handleSubmit}
-            onDashboard={() => router.push("/dashboard")}
+            onDashboard={handleSaveAndGoToDashboard}
           />
         );
       default:
