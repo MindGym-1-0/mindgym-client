@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import LogoutButton from "../../../components/auth/logout-button";
 import { useUserName } from "@/hooks/useUserName";
 import { getInterviews, type InterviewItem } from "@/lib/interviews/api";
 import { getSessionHistory } from "@/lib/session/api";
+import { writeSetup, clearSetup } from "@/lib/session/store";
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("en-US", {
@@ -40,10 +42,26 @@ function formatInterviewTime(dateStr: string): string {
 
 export default function DashboardPage() {
   const name = useUserName();
+  const router = useRouter();
   const [dateStr, setDateStr] = useState("");
   const [nextInterview, setNextInterview] = useState<InterviewItem | null>(null);
   const [sessionCount, setSessionCount] = useState<number | null>(null);
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
+
+  function handlePrepareWithMaya(interview: InterviewItem) {
+    clearSetup();
+    writeSetup({
+      preparation_for: "interview_tomorrow",
+      company: interview.company,
+      role: interview.role,
+    });
+    router.push("/sessions/setup/prep-type");
+  }
+
+  function handleStartSession() {
+    clearSetup();
+    router.push("/sessions/setup/prep-type");
+  }
 
   useEffect(() => {
     setDateStr(formatDate(new Date()));
@@ -84,7 +102,10 @@ export default function DashboardPage() {
             <p className="mt-3 text-sm opacity-80">{nextInterview.notes}</p>
           )}
           <div className="mt-6 flex gap-4">
-            <button className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black">
+            <button
+              onClick={() => handlePrepareWithMaya(nextInterview)}
+              className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black"
+            >
               Prepare with Maya {"->"}
             </button>
             <button className="rounded-xl border border-white/30 px-5 py-3 text-sm">
@@ -99,7 +120,10 @@ export default function DashboardPage() {
             Ready when you are.
           </h2>
           <div className="mt-6">
-            <button className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black">
+            <button
+              onClick={handleStartSession}
+              className="rounded-xl bg-white px-5 py-3 text-sm font-medium text-black"
+            >
               Start a session {"->"}
             </button>
           </div>
