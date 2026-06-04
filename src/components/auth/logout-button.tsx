@@ -16,10 +16,12 @@ export default function LogoutButton() {
     setIsLoading(true);
 
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+      // Best-effort backend call — don't block logout if it fails
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
-      });
+      }).catch(() => {});
+
       await getSupabaseBrowserClient().auth.signOut();
       router.replace("/login");
       router.refresh();
