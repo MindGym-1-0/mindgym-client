@@ -6,45 +6,45 @@ interface Props {
 const OPTIONS = [
   {
     value: "Rejection and silence",
-    icon: "📭",
-    title: "Rejection and silence",
+    icon: "😔",
+    title: "Rejection and silence — the not hearing back",
     description:
-      "Applications disappear into a void and responses are rare.",
+      "The waiting and the rejections are chipping away at my confidence",
   },
   {
     value: "Interview anxiety",
     icon: "😰",
-    title: "Interview anxiety",
+    title: "Interview anxiety — I freeze under pressure",
     description:
-      "Stress and nerves make it difficult to perform at your best.",
+      "I prepare well but something shuts off when I'm in the room",
   },
   {
     value: "Imposter syndrome",
     icon: "🤔",
-    title: "Imposter syndrome",
+    title: "Imposter syndrome — I don't feel good enough",
     description:
-      "Feeling like you're not qualified enough despite your experience.",
+      "I second-guess whether I deserve the roles I'm applying for",
   },
   {
     value: "Burnout",
-    icon: "🔥",
-    title: "Burnout",
+    icon: "😩",
+    title: "Burnout — the search itself is exhausting",
     description:
-      "The job search is draining your energy and motivation.",
+      "The effort of constantly selling myself is draining me",
   },
   {
     value: "Uncertainty",
-    icon: "🌫️",
-    title: "Uncertainty",
+    icon: "🫤",
+    title: "Uncertainty — I don't know what I want",
     description:
-      "Not knowing what to do next or whether you're on the right path.",
+      "The hardest part is not knowing which direction is right",
   },
   {
     value: "Financial pressure",
     icon: "💸",
-    title: "Financial pressure",
+    title: "Financial pressure — the clock is ticking",
     description:
-      "The need for income is adding urgency and stress.",
+      "Money stress is amplifying everything else",
   },
 ];
 
@@ -53,20 +53,18 @@ export function Step7EmotionChallenge({
   onChange,
 }: Props) {
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold text-ink mb-3">
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-h2 font-display text-ink mb-3">
           What's been the hardest part emotionally?
         </h2>
 
-        <p className="text-ink-60 max-w-2xl mx-auto">
-          Everyone struggles with different parts of the job search.
-          Maya uses this to personalize coaching and identify where
-          support will have the biggest impact.
+        <p className="text-sm text-ink-60">
+          This personalises your coaching sessions.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {OPTIONS.map((option) => {
           const selected = value === option.value;
 
@@ -74,53 +72,44 @@ export function Step7EmotionChallenge({
             <button
               key={option.value}
               onClick={() => onChange(option.value)}
-              className={`w-full rounded-2xl border p-5 transition-all text-left ${
+              className={`w-full rounded-2xl border px-5 py-4 text-left transition-all ${
                 selected
-                  ? "border-teal-600 bg-teal-50 shadow-sm"
-                  : "border-border bg-white hover:border-teal-300"
+                  ? "bg-teal-50 border-teal-600"
+                  : "bg-white border-border hover:border-teal-300"
               }`}
             >
               <div className="flex items-center justify-between">
-                <div className="flex gap-4">
-                  <div className="text-2xl">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                     {option.icon}
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-lg">
+                    <h3 className="font-semibold text-sm text-ink">
                       {option.title}
                     </h3>
 
-                    <p className="text-sm text-ink-60 mt-1">
+                    <p className="text-xs text-ink-60 mt-1">
                       {option.description}
                     </p>
                   </div>
                 </div>
 
                 <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                     selected
                       ? "border-teal-600"
                       : "border-gray-300"
                   }`}
                 >
                   {selected && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-teal-600" />
+                    <div className="w-3 h-3 rounded-full bg-teal-600" />
                   )}
                 </div>
               </div>
             </button>
           );
         })}
-      </div>
-
-      <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
-        <p className="text-sm text-teal-900">
-          💡 <strong>Why this matters:</strong> Maya doesn't just help
-          you find a job. She helps you navigate the emotional side of
-          the process so you can stay confident, focused, and resilient
-          throughout your search.
-        </p>
       </div>
     </div>
   );

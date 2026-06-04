@@ -3,53 +3,48 @@ interface Props {
   onChange: (value: number) => void;
 }
 
-function getAnxietyLabel(score: number) {
+function getAnxietyContent(score: number) {
   if (score <= 2) {
     return {
       title: "Very calm",
-      description:
-        "You're feeling confident and relatively stress-free.",
+      description: "Little to no anxiety present",
       quote:
-        "I feel prepared and in control of my job search.",
+        "I feel grounded and confident in my ability to handle this search.",
     };
   }
 
   if (score <= 4) {
     return {
       title: "Mild anxiety",
-      description:
-        "Some nerves are present, but they're manageable.",
+      description: "Some nerves, but manageable",
       quote:
-        "I notice some stress, but it isn't holding me back.",
+        "I notice occasional stress but it isn't affecting my focus.",
     };
   }
 
   if (score <= 7) {
     return {
       title: "Moderate anxiety",
-      description:
-        "Anxiety is noticeable and may affect confidence or focus.",
+      description: "present but manageable",
       quote:
-        "I notice tension, but I can still focus on what matters.",
+        "I notice some tension but I can still focus on what matters.",
     };
   }
 
   if (score <= 9) {
     return {
       title: "High anxiety",
-      description:
-        "Stress is having a meaningful impact on your search experience.",
+      description: "frequently affecting confidence",
       quote:
-        "I spend a lot of energy worrying about outcomes.",
+        "Worry is taking up a meaningful amount of my attention.",
     };
   }
 
   return {
     title: "Overwhelming anxiety",
-    description:
-      "The job search feels emotionally exhausting right now.",
+    description: "significantly impacting daily life",
     quote:
-      "The pressure feels difficult to manage on my own.",
+      "The stress feels difficult to manage and is affecting my wellbeing.",
   };
 }
 
@@ -57,37 +52,38 @@ export function Step8BaselineAnxiety({
   value,
   onChange,
 }: Props) {
-  const anxiety = getAnxietyLabel(value);
+  const anxiety = getAnxietyContent(value);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold text-ink mb-3">
-          Before your first session — how anxious do you feel?
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-h2 font-display text-ink mb-4">
+          Before your first session — how anxious do you
+          feel right now?
         </h2>
 
-        <p className="text-ink-60 max-w-2xl mx-auto">
-          Rate your anxiety on a scale from 1 to 10. This becomes your
-          baseline score so Maya can measure progress over time.
+        <p className="text-sm text-ink-60 max-w-xl mx-auto">
+          Rate your anxiety on a scale of 1 to 10.
+          This becomes your baseline score.
+          After every session Maya will ask again,
+          so you can both see how much things shift
+          over time.
         </p>
       </div>
 
-      <div className="bg-white border border-border rounded-2xl p-8">
+      {/* Score Card */}
+      <div className="bg-white border border-border rounded-2xl p-8 shadow-sm">
         <div className="text-center">
-          <div className="text-7xl font-bold text-teal-700">
+          <div className="text-6xl font-bold text-teal-700">
             {value}
           </div>
 
-          <h3 className="text-xl font-semibold mt-3">
-            {anxiety.title}
-          </h3>
-
-          <p className="text-ink-60 mt-2">
-            {anxiety.description}
+          <p className="text-sm text-ink mt-2">
+            {anxiety.title} — {anxiety.description}
           </p>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <input
             type="range"
             min="1"
@@ -96,45 +92,52 @@ export function Step8BaselineAnxiety({
             onChange={(e) =>
               onChange(Number(e.target.value))
             }
-            className="w-full cursor-pointer"
+            className="w-full accent-teal-600"
           />
 
-          <div className="flex justify-between text-sm text-ink-60 mt-2">
+          <div className="flex justify-between text-xs text-ink-60 mt-2">
             <span>1 — Completely calm</span>
             <span>10 — Overwhelming</span>
           </div>
         </div>
 
-        <div className="mt-6 rounded-xl bg-gray-50 p-4">
-          <p className="italic text-center text-ink-60">
-            "{anxiety.quote}"
-          </p>
-        </div>
+        <p className="mt-5 text-center italic text-sm text-ink-60">
+          "{anxiety.quote}"
+        </p>
       </div>
 
-      <div className="rounded-2xl border border-teal-200 bg-teal-50 p-6">
-        <h3 className="font-semibold text-lg text-teal-900 mb-3">
+      {/* How Maya Uses This */}
+      <div className="bg-white border border-border rounded-2xl p-6 mt-4 shadow-sm">
+        <h3 className="font-semibold text-sm mb-4">
           How Maya uses this score
         </h3>
 
-        <div className="space-y-3 text-sm text-teal-900">
-          <p>
-            • Your score before every session becomes your baseline.
-          </p>
+        <div className="space-y-3 text-sm text-ink">
+          <div className="flex gap-3">
+            <span className="text-teal-600">●</span>
+            <p>
+              Your score before every session becomes
+              the <strong>pre-score</strong>
+            </p>
+          </div>
 
-          <p>
-            • After the session, Maya asks for your score again.
-          </p>
+          <div className="flex gap-3">
+            <span className="text-teal-600">●</span>
+            <p>
+              After the session, Maya asks again —
+              that's your <strong>post-score</strong>
+            </p>
+          </div>
 
-          <p>
-            • The difference helps measure anxiety reduction and
-            emotional progress over time.
-          </p>
-
-          <p>
-            • Over multiple sessions, you'll see how confidence,
-            resilience, and interview readiness improve.
-          </p>
+          <div className="flex gap-3">
+            <span className="text-teal-200">●</span>
+            <p>
+              The difference is your{" "}
+              <strong>anxiety lift</strong> —
+              the core measure of whether a
+              session actually helped
+            </p>
+          </div>
         </div>
       </div>
     </div>
