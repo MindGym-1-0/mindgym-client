@@ -22,11 +22,13 @@ interface FormData {
 interface Props {
   formData: FormData;
   onComplete: () => void;
+  onDashboard: () => void;
 }
 
 export function Step9Summary({
   formData,
   onComplete,
+  onDashboard,
 }: Props) {
   const router = useRouter();
 
@@ -195,9 +197,8 @@ export function Step9Summary({
         </div>
       </div>
 
-      {/* Buttons */}
-
-      <div className="space-y-4">
+      {/* CTA */}
+      <div className="text-center pt-2 flex flex-col gap-3">
         <button
           onClick={onComplete}
           className="w-full bg-[#0F766E] hover:bg-[#0D6B64] text-white py-4 rounded-2xl font-semibold transition-colors"

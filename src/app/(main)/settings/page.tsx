@@ -2,8 +2,9 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUserName } from "@/hooks/useUserName";
+import { supabase } from "@/lib/supabase/client";
 
 import {
   Bell,
@@ -14,6 +15,14 @@ import {
 
 export default function SettingsPage() {
   const name = useUserName();
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data?.user?.email ?? "");
+    });
+  }, []);
+
   const plans = [
     {
       name: "Free",
@@ -126,7 +135,7 @@ export default function SettingsPage() {
               </h2>
 
               <p className="text-sm text-gray-500">
-                claire@mindgym.ai
+                {email}
               </p>
             </div>
           </div>

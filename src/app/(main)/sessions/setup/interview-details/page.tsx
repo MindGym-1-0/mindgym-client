@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { writeSetup } from "@/lib/session/store";
+import { writeSetup, readSetup } from "@/lib/session/store";
 
 export default function InterviewDetailsPage() {
   const router = useRouter();
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
+
+  useEffect(() => {
+    const setup = readSetup();
+    if (setup.company && setup.role) {
+      router.replace("/sessions/setup/feelings");
+    }
+  }, [router]);
 
   const canContinue = company.trim() !== "" && role.trim() !== "";
 
