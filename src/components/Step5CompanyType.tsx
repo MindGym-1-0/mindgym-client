@@ -5,39 +5,39 @@ interface Props {
 
 const OPTIONS = [
   {
-    value: "Startup (seed-series B)",
+    value: "Startup",
     icon: "🚀",
-    title: "Startup (seed-series B)",
+    title: "Startup (seed – Series B)",
     description:
-      "Fast-paced environment with broad responsibilities and rapid growth.",
+      "Fast-moving, generalist roles, less structured interviews",
   },
   {
-    value: "Scale-up / Growth stage",
+    value: "Scale-up",
     icon: "📈",
     title: "Scale-up / Growth stage",
     description:
-      "Growing companies with established products and expanding teams.",
+      "Structured enough to have process, fast enough to still matter individually",
   },
   {
-    value: "Large tech / FAANG",
-    icon: "💻",
+    value: "FAANG",
+    icon: "🏢",
     title: "Large tech / FAANG",
     description:
-      "Structured hiring processes, strong compensation, and global impact.",
+      "Structured panels, behavioural loops, strong process — high competition",
   },
   {
-    value: "Enterprise / Corporate",
-    icon: "🏢",
-    title: "Enterprise / Corporate",
+    value: "Enterprise",
+    icon: "🏛️",
+    title: "Enterprise / Traditional corporate",
     description:
-      "Established organizations with defined career progression paths.",
+      "Longer processes, hierarchical, stability-focused culture",
   },
   {
-    value: "Any company size",
+    value: "Any",
     icon: "🌍",
-    title: "Any company size",
+    title: "Any company size is fine",
     description:
-      "I'm open to opportunities regardless of company stage or size.",
+      "I'm open — fit and role matter more than company stage",
   },
 ];
 
@@ -46,19 +46,20 @@ export function Step5CompanyType({
   onChange,
 }: Props) {
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold text-ink mb-3">
-          What type of company are you targeting?
+    <div className="max-w-2xl mx-auto">
+      <div className="text-center mb-8">
+        <h2 className="text-h2 font-display text-ink mb-3">
+          What type of company do you want to work for?
         </h2>
 
-        <p className="text-ink-60 max-w-2xl mx-auto">
-          This helps Maya tailor your job-search strategy, interview
-          preparation, and networking recommendations.
+        <p className="text-sm text-ink-60 max-w-xl mx-auto">
+          Interview culture, prep approach, and the psychological
+          weight of a process varies a lot by company type.
+          You can pick more than one.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {OPTIONS.map((option) => {
           const selected = value === option.value;
 
@@ -66,53 +67,44 @@ export function Step5CompanyType({
             <button
               key={option.value}
               onClick={() => onChange(option.value)}
-              className={`w-full rounded-2xl border p-5 transition-all text-left ${
+              className={`w-full rounded-2xl border px-5 py-4 text-left transition-all ${
                 selected
-                  ? "border-teal-600 bg-teal-50 shadow-sm"
-                  : "border-border bg-white hover:border-teal-300"
+                  ? "bg-teal-50 border-teal-600"
+                  : "bg-white border-border hover:border-teal-300"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="text-2xl">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                     {option.icon}
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-lg">
+                    <h3 className="font-semibold text-sm text-ink">
                       {option.title}
                     </h3>
 
-                    <p className="text-sm text-ink-60 mt-1">
+                    <p className="text-xs text-ink-60 mt-1">
                       {option.description}
                     </p>
                   </div>
                 </div>
 
                 <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
                     selected
                       ? "border-teal-600"
                       : "border-gray-300"
                   }`}
                 >
                   {selected && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-teal-600" />
+                    <div className="w-3 h-3 rounded-full bg-teal-600" />
                   )}
                 </div>
               </div>
             </button>
           );
         })}
-      </div>
-
-      <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
-        <p className="text-sm text-teal-900">
-          💡 <strong>Why this matters:</strong> startups, scale-ups,
-          and large enterprises often evaluate candidates differently.
-          Maya adapts coaching sessions and preparation strategies
-          based on the type of organizations you're targeting.
-        </p>
       </div>
     </div>
   );
