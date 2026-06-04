@@ -4,22 +4,29 @@ import { useEffect, useState } from "react";
 import { useUserName } from "@/hooks/useUserName";
 import { getSessionHistory, type SessionHistoryItem } from "@/lib/session/api";
 
+type Range = "week" | "month" | "all";
+
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"];
+const BAR_MAX_PX = 64;
+
+function filterByRange(sessions: SessionHistoryItem[], range: Range): SessionHistoryItem[] {
+  if (range === "all") return sessions;
+  const now = new Date();
+  const cutoff = new Date(now);
+  if (range === "week") cutoff.setDate(now.getDate() - 7);
+  if (range === "month") cutoff.setDate(now.getDate() - 30);
+  return sessions.filter((s) => new Date(s.created_at) >= cutoff);
+}
 
 function buildWeeklyBars(sessions: SessionHistoryItem[]): number[] {
   const counts = new Array<number>(7).fill(0);
   const now = new Date();
-
   sessions.forEach((s) => {
-    const date = new Date(s.created_at);
     const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (now.getTime() - new Date(s.created_at).getTime()) / (1000 * 60 * 60 * 24)
     );
-    if (diffDays < 7) {
-      counts[6 - diffDays]++;
-    }
+    if (diffDays < 7) counts[6 - diffDays]++;
   });
-
   return counts;
 }
 
@@ -32,24 +39,30 @@ function computeAvgLift(sessions: SessionHistoryItem[]): string {
   return avg >= 0 ? `+${avg.toFixed(1)}` : avg.toFixed(1);
 }
 
-const BAR_MAX_PX = 64;
-
 export default function ProgressPage() {
   const name = useUserName();
-  const [sessions, setSessions] = useState<SessionHistoryItem[]>([]);
+  const [allSessions, setAllSessions] = useState<SessionHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState<Range>("week");
 
   useEffect(() => {
     getSessionHistory()
-      .then(setSessions)
+      .then(setAllSessions)
       .catch((err) => console.error("Failed to load session history:", err))
       .finally(() => setLoading(false));
   }, []);
 
-  const sessionCount = sessions.length;
-  const avgLift = computeAvgLift(sessions);
-  const weeklyBars = buildWeeklyBars(sessions);
+  const filtered = filterByRange(allSessions, range);
+  const sessionCount = filtered.length;
+  const avgLift = computeAvgLift(filtered);
+  const weeklyBars = buildWeeklyBars(allSessions);
   const barMax = Math.max(...weeklyBars, 1);
+
+  const RANGES: { label: string; value: Range }[] = [
+    { label: "This week", value: "week" },
+    { label: "This month", value: "month" },
+    { label: "All time", value: "all" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] px-10 py-8">
@@ -61,15 +74,19 @@ export default function ProgressPage() {
         </div>
 
         <div className="flex gap-3">
-          <button className="rounded-full border border-[#0C6B58] bg-[#DDF4EE] px-4 py-2 text-sm text-[#0C6B58]">
-            This week
-          </button>
-          <button className="rounded-full bg-white px-4 py-2 text-sm text-gray-600">
-            This month
-          </button>
-          <button className="rounded-full bg-white px-4 py-2 text-sm text-gray-600">
-            All time
-          </button>
+          {RANGES.map((r) => (
+            <button
+              key={r.value}
+              onClick={() => setRange(r.value)}
+              className={`rounded-full px-4 py-2 text-sm transition-all ${
+                range === r.value
+                  ? "border border-[#0C6B58] bg-[#DDF4EE] text-[#0C6B58]"
+                  : "bg-white text-gray-600"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
         </div>
       </div>
 
