@@ -109,8 +109,15 @@ export default function LoginPage() {
           <h1 className={styles.title}>Welcome back.</h1>
           <p className={styles.subtitle}>Start your mental journey</p>
 
-          <button type="button" disabled className={styles.socialButton}>
-            Continue with Google (Coming soon)
+          <button
+            type="button"
+            className={styles.socialButton}
+            onClick={() => {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+              window.location.href = `${apiUrl}/api/auth/google`;
+            }}
+          >
+            Continue with Google
           </button>
 
           <div className={styles.dividerRow}>
