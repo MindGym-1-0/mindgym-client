@@ -27,7 +27,6 @@ export default function ActiveSessionPage() {
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Refs used inside event handlers to avoid stale closures
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentUrlRef = useRef<string | null>(null);
   const nextUrlRef = useRef<string | null>(null);
@@ -69,34 +68,24 @@ export default function ActiveSessionPage() {
     }, WORD_SPEED_MS);
   }, []);
 
-  // Fetch audio for a backend phase number (1–5) and store in nextUrlRef
   const prefetchNextPhase = useCallback((backendPhase: number) => {
     if (!sessionRef.current || backendPhase > 5) return;
-    console.log('[audio] prefetching phase', backendPhase);
     fetchPhaseAudio(sessionRef.current.session_id, backendPhase).then((url) => {
-      console.log('[audio] prefetch phase', backendPhase, url ? 'ready' : 'failed');
       if (url) nextUrlRef.current = url;
     });
   }, []);
 
-  // Keep handlePhaseEndedRef current so audio.onended always calls latest version
   useEffect(() => {
     handlePhaseEndedRef.current = () => {
       const nextPhaseIndex = currentPhaseRef.current + 1;
-
       if (nextPhaseIndex >= 5) {
         router.push("/sessions/feedback");
         return;
       }
-
       revokeCurrentUrl();
-
       currentPhaseRef.current = nextPhaseIndex;
       setCurrentPhase(nextPhaseIndex);
-
-      console.log('[audio] phase ended, next ready:', !!nextUrlRef.current);
       if (nextUrlRef.current && audioRef.current) {
-        // Play the pre-fetched audio for the next phase
         currentUrlRef.current = nextUrlRef.current;
         nextUrlRef.current = null;
         audioRef.current.src = currentUrlRef.current;
@@ -107,19 +96,14 @@ export default function ActiveSessionPage() {
         if (sessionRef.current) {
           setDisplayedText(getPhaseText(sessionRef.current, nextPhaseIndex));
         }
-        // backendPhase for the phase after next = nextPhaseIndex (0-indexed) + 2
         prefetchNextPhase(nextPhaseIndex + 2);
       } else {
-        // Next phase audio wasn't ready — fall back to typewriter
         setAudioMode(false);
         startTypewriter(nextPhaseIndex);
       }
     };
   }, [router, startTypewriter, prefetchNextPhase, revokeCurrentUrl]);
 
-  // Mount: read session and prefetch phase 1.
-  // React StrictMode intentionally runs this effect twice in development, so
-  // every async fetch is guarded by a load id and an active flag.
   useEffect(() => {
     const s = readActive();
     if (!s) {
@@ -139,15 +123,11 @@ export default function ActiveSessionPage() {
     revokeCurrentUrl();
     revokeNextUrl();
 
-    // Enable Begin button after 3 s even if audio hasn't arrived.
-    // If audio isn't ready by then, switch the CTA to text so the UI doesn't
-    // promise Maya's voice while currentUrlRef is still empty.
     let active = true;
     const loadId = phase1LoadIdRef.current + 1;
     phase1LoadIdRef.current = loadId;
     const fallbackTimer = setTimeout(() => {
       if (!active || phase1LoadIdRef.current !== loadId || currentUrlRef.current) return;
-      console.warn('[audio] phase 1 not ready before timeout; enabling text fallback');
       setAudioMode(false);
       setAudioReady(true);
     }, AUDIO_READY_TIMEOUT_MS);
@@ -158,7 +138,6 @@ export default function ActiveSessionPage() {
         return;
       }
       clearTimeout(fallbackTimer);
-      console.log('[audio] fetch result:', url ? 'got URL' : 'null (fallback)');
       if (sessionStartedRef.current) {
         if (url) revokePhaseAudio(url);
         return;
@@ -188,31 +167,18 @@ export default function ActiveSessionPage() {
   }, [router, revokeCurrentUrl, revokeNextUrl]);
 
   const handleBegin = () => {
-    console.log('[audio] handleBegin called', { hasSession: !!session, audioReady, audioMode, hasUrl: !!currentUrlRef.current });
     if (!session) return;
     sessionStartedRef.current = true;
     setSessionStarted(true);
-
     if (audioMode && audioReady && currentUrlRef.current && audioRef.current) {
-      // audio.play() called directly from tap handler — satisfies iOS autoplay policy
       audioRef.current.src = currentUrlRef.current;
-      console.log('[audio] calling play(), audioMode=', audioMode, 'url=', !!currentUrlRef.current);
-      audioRef.current.play().then(() => {
-        console.log('[audio] play() resolved');
-      }).catch((err) => {
-        console.error('[audio] play() rejected:', err);
+      audioRef.current.play().catch(() => {
         setAudioMode(false);
         startTypewriter(0);
       });
       setDisplayedText(getPhaseText(session, 0));
-      prefetchNextPhase(2); // backend phase 2 = phase index 1
+      prefetchNextPhase(2);
     } else {
-      console.warn('[audio] begin fell back to text', {
-        audioMode,
-        hasCurrentUrl: !!currentUrlRef.current,
-        hasAudioRef: !!audioRef.current,
-        audioReady,
-      });
       setAudioMode(false);
       startTypewriter(0);
     }
@@ -237,7 +203,6 @@ export default function ActiveSessionPage() {
       currentPhaseRef.current = next;
       setCurrentPhase(next);
       if (nextUrlRef.current && audioRef.current) {
-        // Pre-fetched audio is ready — keep playing in audio mode
         currentUrlRef.current = nextUrlRef.current;
         nextUrlRef.current = null;
         audioRef.current.src = currentUrlRef.current;
@@ -248,12 +213,10 @@ export default function ActiveSessionPage() {
         setDisplayedText(getPhaseText(session!, next));
         prefetchNextPhase(next + 2);
       } else {
-        // Next phase not ready yet — fall back to typewriter
         setAudioMode(false);
         startTypewriter(next);
       }
     } else {
-      // Typewriter mode: skip to full text first tap, advance on second
       if (isTyping) {
         if (intervalRef.current) clearInterval(intervalRef.current);
         setDisplayedText(session ? getPhaseText(session, currentPhase) : "");
@@ -281,8 +244,6 @@ export default function ActiveSessionPage() {
         preload="auto"
         className="hidden"
       />
-
-      {/* Header */}
       <div className="bg-white rounded-3xl p-6 border mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Maya is guiding your session</h1>
@@ -303,13 +264,11 @@ export default function ActiveSessionPage() {
       </div>
 
       <div className="grid grid-cols-[2fr_1fr] gap-6">
-        {/* Main phase card */}
         <div className="rounded-3xl bg-gradient-to-br from-[#032F2B] to-[#0C6B58] p-10 text-white min-h-[500px] flex flex-col items-center justify-center">
           <div className="text-7xl mb-6">{PHASE_EMOJIS[currentPhase]}</div>
           <h2 className="text-3xl font-semibold">{PHASE_NAMES[currentPhase]}</h2>
 
           {!sessionStarted ? (
-            // Pre-session intro — shown while audio is prefetching
             <div className="mt-8 flex flex-col items-center gap-3 text-center">
               <p className="text-white/70 text-sm max-w-xs">
                 {audioMode
@@ -336,26 +295,18 @@ export default function ActiveSessionPage() {
               )}
             </div>
           ) : (
-            // Session content
             <>
               <p className="mt-6 text-center max-w-lg text-gray-200 leading-relaxed whitespace-pre-wrap">
                 {displayedText}
                 {isTyping && <span className="animate-pulse">▋</span>}
               </p>
-
               <div className="flex gap-4 mt-10">
                 {isLast ? (
-                  <button
-                    onClick={skipOrAdvance}
-                    className="bg-[#1A8A74] px-5 py-3 rounded-xl"
-                  >
+                  <button onClick={skipOrAdvance} className="bg-[#1A8A74] px-5 py-3 rounded-xl">
                     {audioMode || isTyping ? "Skip →" : "Finish session →"}
                   </button>
                 ) : (
-                  <button
-                    onClick={skipOrAdvance}
-                    className="bg-white text-black px-5 py-3 rounded-xl"
-                  >
+                  <button onClick={skipOrAdvance} className="bg-white text-black px-5 py-3 rounded-xl">
                     {audioMode || isTyping ? "Skip →" : "Next phase →"}
                   </button>
                 )}
@@ -364,7 +315,6 @@ export default function ActiveSessionPage() {
           )}
         </div>
 
-        {/* Phase sidebar */}
         <div className="space-y-4">
           {PHASE_NAMES.map((name, i) => (
             <div
