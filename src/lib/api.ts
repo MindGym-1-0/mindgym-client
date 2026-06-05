@@ -1,10 +1,14 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface AuthResponse {
-  access_token: string;
-  token_type: string;
-  user_id: string;
-  email: string;
+  authenticated: boolean;
+  user?: Record<string, unknown>;
+  message?: string;
+  session?: {
+    access_token: string;
+    refresh_token: string;
+    expires_in?: number;
+  };
 }
 
 /**
@@ -49,21 +53,11 @@ export async function verifyToken(token: string): Promise<AuthResponse> {
  * Get Google OAuth URL for sign up/login
  */
 export function getGoogleAuthUrl(): string {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const redirectUri = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/auth/callback`;
-  
-  if (!clientId) {
-    throw new Error('Google Client ID not configured');
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) {
+    throw new Error('API URL not configured');
   }
-
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    scope: 'openid profile email',
-  });
-
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  return `${apiUrl}/api/auth/google`;
 }
 
 /**
