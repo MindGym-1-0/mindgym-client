@@ -41,8 +41,8 @@ export default function LogInPage() {
           {/* Google Sign In */}
           <button
             onClick={() => {
-              // Google sign-in logic would go here
-              console.log('Sign in with Google');
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+              window.location.href = `${apiUrl}/api/auth/google`;
             }}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border rounded-lg hover:bg-teal-10 transition-colors mb-6"
           >
