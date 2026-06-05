@@ -2,7 +2,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
-async function getToken(): Promise<string> {
+export async function getToken(): Promise<string> {
   const supabase = getSupabaseBrowserClient();
 
   const { data: { session } } = await supabase.auth.getSession();
