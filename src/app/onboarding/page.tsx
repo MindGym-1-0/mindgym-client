@@ -329,6 +329,7 @@ export default function OnboardingWizard() {
             formData={formData}
             onComplete={handleSubmit}
             onDashboard={handleSaveAndGoToDashboard}
+            isLoading={isLoading}
           />
         );
       default:
