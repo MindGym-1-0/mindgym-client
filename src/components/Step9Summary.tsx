@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 interface FormData {
   employmentStatus: string;
   searchTimeline: string;
@@ -32,7 +30,6 @@ export function Step9Summary({
   onDashboard,
   isLoading = false,
 }: Props) {
-  const router = useRouter();
 
   const anxietyLevel =
     formData.anxiety >= 8
@@ -219,9 +216,7 @@ export function Step9Summary({
         <div className="text-center">
           <button
             type="button"
-            onClick={() =>
-              router.push("/dashboard")
-            }
+            onClick={onDashboard}
             className="text-sm text-gray-500 underline hover:text-gray-800"
           >
             Go to Dashboard
