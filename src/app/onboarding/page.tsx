@@ -20,11 +20,11 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/+$/, "");
 const TOTAL_STEPS = 9;
 
 const COMPANY_MAP: Record<string, string> = {
-  "Startup (seed-series B)": "startup",
-  "Scale-up / Growth stage": "scale_up",
-  "Large tech / FAANG": "large_tech",
-  "Enterprise / Corporate": "enterprise",
-  "Any company size": "any",
+  "Startup": "startup",
+  "Scale-up": "scale_up",
+  "FAANG": "large_tech",
+  "Enterprise": "enterprise",
+  "Any": "any",
 };
 
 const ROLE_MAP: Record<string, string> = {
@@ -329,6 +329,7 @@ export default function OnboardingWizard() {
             formData={formData}
             onComplete={handleSubmit}
             onDashboard={handleSaveAndGoToDashboard}
+            isLoading={isLoading}
           />
         );
       default:
