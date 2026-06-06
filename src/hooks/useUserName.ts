@@ -11,7 +11,10 @@ export function useUserName(): string {
       const user = data?.user;
       if (!user) return;
       const firstName = user.user_metadata?.first_name as string | undefined;
-      setName(firstName?.trim() || user.email?.split("@")[0] || "");
+      const fullName = user.user_metadata?.full_name as string | undefined;
+      const name = user.user_metadata?.name as string | undefined;
+      const displayName = firstName?.trim() || fullName?.split(" ")[0]?.trim() || name?.split(" ")[0]?.trim() || user.email?.split("@")[0] || "";
+      setName(displayName);
     });
   }, []);
 

@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 interface FormData {
   employmentStatus: string;
   searchTimeline: string;
@@ -22,13 +20,16 @@ interface FormData {
 interface Props {
   formData: FormData;
   onComplete: () => void;
+  onDashboard: () => void;
+  isLoading?: boolean;
 }
 
 export function Step9Summary({
   formData,
   onComplete,
+  onDashboard,
+  isLoading = false,
 }: Props) {
-  const router = useRouter();
 
   const anxietyLevel =
     formData.anxiety >= 8
@@ -77,6 +78,13 @@ export function Step9Summary({
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#042E2B]/90 backdrop-blur-sm">
+          <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin mb-6" />
+          <p className="text-white text-lg font-semibold">Please hold on</p>
+          <p className="text-white/70 text-sm mt-1">Your session is about to begin…</p>
+        </div>
+      )}
       {/* Header */}
 
       <div className="text-center">
@@ -195,12 +203,12 @@ export function Step9Summary({
         </div>
       </div>
 
-      {/* Buttons */}
-
-      <div className="space-y-4">
+      {/* CTA */}
+      <div className="text-center pt-2 flex flex-col gap-3">
         <button
           onClick={onComplete}
-          className="w-full bg-[#0F766E] hover:bg-[#0D6B64] text-white py-4 rounded-2xl font-semibold transition-colors"
+          disabled={isLoading}
+          className="w-full bg-[#0F766E] hover:bg-[#0D6B64] text-white py-4 rounded-2xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Begin my first session →
         </button>
@@ -208,9 +216,7 @@ export function Step9Summary({
         <div className="text-center">
           <button
             type="button"
-            onClick={() =>
-              router.push("/dashboard")
-            }
+            onClick={onDashboard}
             className="text-sm text-gray-500 underline hover:text-gray-800"
           >
             Go to Dashboard

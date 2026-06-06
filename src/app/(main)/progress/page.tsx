@@ -1,7 +1,6 @@
-// src/app/(main)/progress/page.tsx
-
 "use client";
 
+import { useEffect, useState } from "react";
 import { useUserName } from "@/hooks/useUserName";
 
 const weeklyBars = [
@@ -97,10 +96,7 @@ export default function ProgressPage() {
           <h2 className="text-3xl md:text-4xl font-semibold text-[#0C6B58]">
             6
           </h2>
-
-          <p className="mt-3 text-sm text-gray-500">
-            SESSIONS DONE
-          </p>
+          <p className="mt-3 text-sm text-gray-500">SESSIONS DONE</p>
         </div>
 
         <div className="rounded-3xl bg-white p-6 md:p-8 shadow-sm">
@@ -117,10 +113,7 @@ export default function ProgressPage() {
           <h2 className="text-3xl md:text-4xl font-semibold text-[#0C6B58]">
             +4.2
           </h2>
-
-          <p className="mt-3 text-sm text-gray-500">
-            AVG LIFT / SESSION
-          </p>
+          <p className="mt-3 text-sm text-gray-500">AVG LIFT / SESSION</p>
         </div>
       </div>
 
@@ -130,7 +123,7 @@ export default function ProgressPage() {
         {/* Confidence Graph */}
         <div className="rounded-3xl bg-white p-5 md:p-6 shadow-sm overflow-hidden">
           <h2 className="text-sm font-semibold text-gray-500">
-            CONFIDENCE OVER TIME
+            SESSIONS THIS WEEK
           </h2>
 
           <div className="mt-10 flex items-end justify-between gap-2">

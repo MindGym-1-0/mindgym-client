@@ -1,31 +1,132 @@
-// src/app/(main)/coach/page.tsx
+﻿"use client";
 
-"use client";
-
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
+import { getCoachHome, getInterviews } from "../../../lib/coach/api";
+import type { CoachHomeResponse, RecommendedSession } from "../../../lib/coach/types";
+import type { Interview } from "../../../lib/coach/api";
+import { writeSetup } from "../../../lib/session/store";
 
-const sessions = [
-  {
-    title: "Pre-interview calm reset",
-    subtitle: "8 min • Breathing + visualization",
-    emoji: "🧘",
-  },
-  {
-    title: "Confidence builder",
-    subtitle: "10 min • Maya-guided",
-    emoji: "💔",
-  },
-  {
-    title: "Think clearly under pressure",
-    subtitle: "10 min • Focus + mental clarity",
-    emoji: "🧠",
-  },
+const FALLBACK_SESSIONS: RecommendedSession[] = [
+  { title: "Pre-interview calm reset", duration_mins: 8, focus: "Breathing + visualization", session_type: "interview_tomorrow" },
+  { title: "Confidence builder", duration_mins: 10, focus: "Grounding + anchor", session_type: "general_reset" },
+  { title: "Think clearly under pressure", duration_mins: 10, focus: "Focus + mental clarity", session_type: "general_reset" },
 ];
+
+const FALLBACK_INSIGHTS = [
+  "Strongest area: motivation and persistence",
+  "Growth area: thinking clearly under pressure",
+  "Pattern: anxiety spikes the night before interviews",
+  "Morning sessions produce higher confidence lifts",
+];
+
+const INSIGHT_COLORS = ["#0D7C66", "#E59B00", "#C0392B", "#8E44AD"];
+
+const SESSION_EMOJIS: Record<string, string> = {
+  interview_tomorrow: "🧘",
+  general_reset: "💪",
+  recruiter_call: "📞",
+  networking: "🤝",
+  salary_negotiation: "💼",
+  rejection_recovery: "💔",
+  restarting_search: "🧠",
+  pre_interview_calm_reset: "🧘",
+  confidence_builder: "💪",
+  think_clearly_under_pressure: "🧠",
+};
+
+function getSessionEmoji(session_type: string): string {
+  return SESSION_EMOJIS[session_type] ?? "✨";
+}
+
+function formatInterviewDate(raw: string): string {
+  try {
+    const d = new Date(raw);
+    const now = new Date();
+    const diffDays = Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (diffDays === 0) return `Today · ${time}`;
+    if (diffDays === 1) return `Tomorrow · ${time}`;
+    return `${d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })} · ${time}`;
+  } catch {
+    return raw;
+  }
+}
+
+const FALLBACK_GREETING = "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared. Which session would you like to start with?";
+const FALLBACK_SUGGESTION = {
+  text: "A 5-min breathing session tonight at 9 PM. The night before has the highest impact on next-day composure.",
+};
 
 export default function CoachPage() {
   const name = useUserName();
   const router = useRouter();
+
+  const [coachHome, setCoachHome] = useState<CoachHomeResponse | null>(null);
+  const [upcomingInterview, setUpcomingInterview] = useState<Interview | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function load() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const [homeData, interviewsData] = await Promise.allSettled([
+          getCoachHome(),
+          getInterviews(),
+        ]);
+
+        if (!isActive) return;
+
+        if (homeData.status === "fulfilled") {
+          setCoachHome(homeData.value);
+        } else {
+          setError("We couldn't load coach updates right now. Showing your latest saved guidance.");
+        }
+
+        if (interviewsData.status === "fulfilled") {
+          setUpcomingInterview(interviewsData.value.upcoming?.[0] ?? null);
+        }
+      } finally {
+        if (!isActive) return;
+        setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => { isActive = false; };
+  }, []);
+
+  const recommendedSessions = useMemo(() => {
+    if (coachHome?.recommended_sessions?.length) return coachHome.recommended_sessions;
+    return FALLBACK_SESSIONS;
+  }, [coachHome]);
+
+  const recommendedToday = useMemo(() => {
+    if (coachHome?.recommended_today?.length) return coachHome.recommended_today;
+    return FALLBACK_INSIGHTS;
+  }, [coachHome]);
+
+  const mayaGreeting = coachHome?.maya_greeting
+    ? `${coachHome.maya_greeting} Which session would you like to start with?`
+    : `Hi ${name} 👋 — ${FALLBACK_GREETING}`;
+  const suggestionText = coachHome?.maya_suggests?.text || FALLBACK_SUGGESTION.text;
+
+  function handleStartSession() {
+    if (upcomingInterview) {
+      writeSetup({
+        preparation_for: "interview_tomorrow",
+        company: upcomingInterview.company,
+        role: upcomingInterview.role,
+      });
+    }
+    router.push("/sessions/setup/emotions");
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-4 md:p-8">
@@ -50,7 +151,6 @@ export default function CoachPage() {
             <div className="w-10 h-10 shrink-0 rounded-full bg-[#0D7C66] text-white flex items-center justify-center">
               M
             </div>
-
             <div>
               <p className="text-gray-700 leading-relaxed">
                 Hi {name} 👋 — your final interview is tomorrow.
@@ -88,9 +188,8 @@ export default function CoachPage() {
               }
               className="w-full sm:w-auto min-h-[44px] bg-[#0D7C66] text-white px-4 py-2 rounded-lg hover:bg-[#095c4c] transition-colors"
             >
-              Start pre-interview session
+              Start pre-interview session →
             </button>
-
             <button
               onClick={() =>
                 router.push("/coach/checklist")

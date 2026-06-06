@@ -63,6 +63,7 @@ export default function LoginPage() {
       const response = await fetch(loginUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
@@ -78,13 +79,16 @@ export default function LoginPage() {
         return;
       }
 
-      if (!data?.authenticated || !data.session?.access_token || !data.session?.refresh_token) {
+      if (!data?.authenticated) {
         setError("Sign-in did not complete. Please try again.");
         return;
       }
 
-      await establishSupabaseSession(data.session);
-      window.location.href = "/dashboard";
+      if (data.session?.access_token && data.session?.refresh_token) {
+        await establishSupabaseSession(data.session);
+      }
+
+      window.location.assign("/dashboard");
       return;
     } catch (err) {
       if (err instanceof Error && err.message) {
@@ -105,8 +109,15 @@ export default function LoginPage() {
           <h1 className={styles.title}>Welcome back.</h1>
           <p className={styles.subtitle}>Start your mental journey</p>
 
-          <button type="button" disabled className={styles.socialButton}>
-            Continue with Google (Coming soon)
+          <button
+            type="button"
+            className={styles.socialButton}
+            onClick={() => {
+              const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+              window.location.href = `${apiUrl}/api/auth/google`;
+            }}
+          >
+            Continue with Google
           </button>
 
           <div className={styles.dividerRow}>
