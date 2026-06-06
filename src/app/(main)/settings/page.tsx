@@ -14,6 +14,7 @@ import {
 
 export default function SettingsPage() {
   const name = useUserName();
+
   const plans = [
     {
       name: "Free",
@@ -25,7 +26,6 @@ export default function SettingsPage() {
       ],
       current: false,
     },
-
     {
       name: "Pro",
       price: "$12/mo",
@@ -37,7 +37,6 @@ export default function SettingsPage() {
       ],
       current: true,
     },
-
     {
       name: "Premium",
       price: "$24/mo",
@@ -55,30 +54,33 @@ export default function SettingsPage() {
     useState([
       {
         title: "Daily mood check-in",
-        subtitle: "Prompt at 8:30 AM each morning",
+        subtitle:
+          "Prompt at 8:30 AM each morning",
         enabled: true,
       },
-
       {
         title: "Pre-interview alert",
-        subtitle: "2 hours before each booked interview",
+        subtitle:
+          "2 hours before each booked interview",
         enabled: true,
       },
-
       {
         title: "Streak reminders",
-        subtitle: "If you haven’t opened the app by 7 PM",
+        subtitle:
+          "If you haven’t opened the app by 7 PM",
         enabled: true,
       },
-
       {
         title: "Session nudges",
-        subtitle: "Suggested moments to reset your mind",
+        subtitle:
+          "Suggested moments to reset your mind",
         enabled: false,
       },
     ]);
 
-  const toggleNotification = (title: string) => {
+  const toggleNotification = (
+    title: string
+  ) => {
     setNotificationSettings((prev) =>
       prev.map((item) =>
         item.title === title
@@ -92,31 +94,29 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F6F4] px-10 py-8">
+    <div className="min-h-screen bg-[#F6F6F4] px-4 py-6 md:px-8 lg:px-10 md:py-8">
       
       {/* Header */}
-      <div className="mb-10">
+      <div className="mb-8 md:mb-10">
         <p className="text-sm text-gray-500">
           Settings
         </p>
 
-        <h1 className="mt-2 text-4xl font-semibold text-[#111111]">
+        <h1 className="mt-2 text-3xl md:text-4xl font-semibold text-[#111111]">
           Settings
         </h1>
       </div>
 
-      {/* Profile Section */}
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-        
+      {/* Profile */}
+      <div className="rounded-3xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm">
         <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-gray-400">
           Profile
         </p>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           
           <div className="flex items-center gap-4">
-            
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#0C6B58] bg-[#DDF4EE] text-sm font-semibold text-[#0C6B58]">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#0C6B58] bg-[#DDF4EE] text-sm font-semibold text-[#0C6B58]">
               {name.slice(0, 2).toUpperCase()}
             </div>
 
@@ -125,23 +125,26 @@ export default function SettingsPage() {
                 {name}
               </h2>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 break-all">
                 claire@mindgym.ai
               </p>
             </div>
           </div>
 
-          <button className="rounded-xl border border-gray-200 px-5 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100">
+          <button className="min-h-[44px] w-full md:w-auto rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-100">
             Edit profile
           </button>
         </div>
       </div>
 
       {/* Notifications */}
-      <div className="mt-8 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mt-6 md:mt-8 rounded-3xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm">
         
         <div className="mb-6 flex items-center gap-3">
-          <Bell size={20} className="text-[#0C6B58]" />
+          <Bell
+            size={20}
+            className="text-[#0C6B58]"
+          />
 
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             Notification Preferences
@@ -152,10 +155,9 @@ export default function SettingsPage() {
           {notificationSettings.map((item) => (
             <div
               key={item.title}
-              className="flex items-center justify-between py-5"
+              className="flex items-start gap-4 py-5 justify-between"
             >
-              
-              <div>
+              <div className="flex-1">
                 <h3 className="text-sm font-semibold text-[#111111]">
                   {item.title}
                 </h3>
@@ -165,12 +167,13 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              {/* Toggle */}
               <button
                 onClick={() =>
-                  toggleNotification(item.title)
+                  toggleNotification(
+                    item.title
+                  )
                 }
-                className={`relative h-7 w-12 rounded-full transition duration-300 ${
+                className={`relative h-7 w-12 shrink-0 rounded-full transition duration-300 ${
                   item.enabled
                     ? "bg-[#0C6B58]"
                     : "bg-gray-300"
@@ -189,18 +192,21 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Account Section */}
-      <div className="mt-8 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+      {/* Account */}
+      <div className="mt-6 md:mt-8 rounded-3xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm">
         
         <div className="mb-5 flex items-center gap-3">
-          <Shield size={20} className="text-[#0C6B58]" />
+          <Shield
+            size={20}
+            className="text-[#0C6B58]"
+          />
 
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             Accounts
           </p>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           
           <div>
             <h3 className="text-sm font-semibold text-[#111111]">
@@ -212,25 +218,25 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          <button className="rounded-xl bg-red-500 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-600">
+          <button className="min-h-[44px] w-full md:w-auto rounded-xl bg-red-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-600">
             Delete account
           </button>
         </div>
       </div>
 
-      {/* Pricing Plans */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      {/* Plans */}
+      <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`rounded-3xl border p-6 shadow-sm transition ${
+            className={`rounded-3xl border p-5 md:p-6 shadow-sm transition ${
               plan.current
                 ? "border-[#0C6B58] bg-[#EAF8F4]"
                 : "border-gray-200 bg-white"
             }`}
           >
             
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               
               <div>
                 <h2 className="text-xl font-semibold text-[#111111]">
@@ -250,28 +256,28 @@ export default function SettingsPage() {
               )}
             </div>
 
-            {/* Features */}
             <div className="mt-8 space-y-4">
-              {plan.features.map((feature) => (
-                <div
-                  key={feature}
-                  className="flex items-start gap-3"
-                >
-                  <Check
-                    size={16}
-                    className="mt-1 text-[#0C6B58]"
-                  />
+              {plan.features.map(
+                (feature) => (
+                  <div
+                    key={feature}
+                    className="flex items-start gap-3"
+                  >
+                    <Check
+                      size={16}
+                      className="mt-1 shrink-0 text-[#0C6B58]"
+                    />
 
-                  <p className="text-sm text-gray-700">
-                    {feature}
-                  </p>
-                </div>
-              ))}
+                    <p className="text-sm text-gray-700">
+                      {feature}
+                    </p>
+                  </div>
+                )
+              )}
             </div>
 
-            {/* Button */}
             {!plan.current && (
-              <button className="mt-8 w-full rounded-xl bg-[#0C6B58] py-3 text-sm font-medium text-white transition hover:bg-[#095746]">
+              <button className="mt-8 min-h-[44px] w-full rounded-xl bg-[#0C6B58] py-3 text-sm font-medium text-white transition hover:bg-[#095746]">
                 Upgrade
               </button>
             )}
