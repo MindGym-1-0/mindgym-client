@@ -62,40 +62,31 @@ export default function SettingsPage() {
     useState([
       {
         title: "Daily mood check-in",
-        subtitle:
-          "Prompt at 8:30 AM each morning",
+        subtitle: "Prompt at 8:30 AM each morning",
         enabled: true,
       },
       {
         title: "Pre-interview alert",
-        subtitle:
-          "2 hours before each booked interview",
+        subtitle: "2 hours before each booked interview",
         enabled: true,
       },
       {
         title: "Streak reminders",
-        subtitle:
-          "If you haven’t opened the app by 7 PM",
+        subtitle: "If you haven't opened the app by 7 PM",
         enabled: true,
       },
       {
         title: "Session nudges",
-        subtitle:
-          "Suggested moments to reset your mind",
+        subtitle: "Suggested moments to reset your mind",
         enabled: false,
       },
     ]);
 
-  const toggleNotification = (
-    title: string
-  ) => {
+  const toggleNotification = (title: string) => {
     setNotificationSettings((prev) =>
       prev.map((item) =>
         item.title === title
-          ? {
-              ...item,
-              enabled: !item.enabled,
-            }
+          ? { ...item, enabled: !item.enabled }
           : item
       )
     );
@@ -103,13 +94,10 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] px-4 py-6 md:px-8 lg:px-10 md:py-8">
-      
+
       {/* Header */}
       <div className="mb-8 md:mb-10">
-        <p className="text-sm text-gray-500">
-          Settings
-        </p>
-
+        <p className="text-sm text-gray-500">Settings</p>
         <h1 className="mt-2 text-3xl md:text-4xl font-semibold text-[#111111]">
           Settings
         </h1>
@@ -122,7 +110,6 @@ export default function SettingsPage() {
         </p>
 
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#0C6B58] bg-[#DDF4EE] text-sm font-semibold text-[#0C6B58]">
               {name.slice(0, 2).toUpperCase()}
@@ -133,8 +120,9 @@ export default function SettingsPage() {
                 {name}
               </h2>
 
+              {/* ✅ Now using real email from Supabase instead of hardcoded value */}
               <p className="text-sm text-gray-500 break-all">
-                claire@mindgym.ai
+                {email || "Loading..."}
               </p>
             </div>
           </div>
@@ -147,13 +135,8 @@ export default function SettingsPage() {
 
       {/* Notifications */}
       <div className="mt-6 md:mt-8 rounded-3xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm">
-        
         <div className="mb-6 flex items-center gap-3">
-          <Bell
-            size={20}
-            className="text-[#0C6B58]"
-          />
-
+          <Bell size={20} className="text-[#0C6B58]" />
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             Notification Preferences
           </p>
@@ -169,29 +152,20 @@ export default function SettingsPage() {
                 <h3 className="text-sm font-semibold text-[#111111]">
                   {item.title}
                 </h3>
-
                 <p className="mt-1 text-sm text-gray-500">
                   {item.subtitle}
                 </p>
               </div>
 
               <button
-                onClick={() =>
-                  toggleNotification(
-                    item.title
-                  )
-                }
+                onClick={() => toggleNotification(item.title)}
                 className={`relative h-7 w-12 shrink-0 rounded-full transition duration-300 ${
-                  item.enabled
-                    ? "bg-[#0C6B58]"
-                    : "bg-gray-300"
+                  item.enabled ? "bg-[#0C6B58]" : "bg-gray-300"
                 }`}
               >
                 <span
                   className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all duration-300 ${
-                    item.enabled
-                      ? "right-1"
-                      : "left-1"
+                    item.enabled ? "right-1" : "left-1"
                   }`}
                 />
               </button>
@@ -202,25 +176,18 @@ export default function SettingsPage() {
 
       {/* Account */}
       <div className="mt-6 md:mt-8 rounded-3xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm">
-        
         <div className="mb-5 flex items-center gap-3">
-          <Shield
-            size={20}
-            className="text-[#0C6B58]"
-          />
-
+          <Shield size={20} className="text-[#0C6B58]" />
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
             Accounts
           </p>
         </div>
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          
           <div>
             <h3 className="text-sm font-semibold text-[#111111]">
               Delete account
             </h3>
-
             <p className="mt-1 text-sm text-gray-500">
               Permanently remove your account and all data.
             </p>
@@ -243,14 +210,11 @@ export default function SettingsPage() {
                 : "border-gray-200 bg-white"
             }`}
           >
-            
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              
               <div>
                 <h2 className="text-xl font-semibold text-[#111111]">
                   {plan.name}
                 </h2>
-
                 <p className="mt-2 text-3xl font-bold text-[#0C6B58]">
                   {plan.price}
                 </p>
@@ -265,23 +229,15 @@ export default function SettingsPage() {
             </div>
 
             <div className="mt-8 space-y-4">
-              {plan.features.map(
-                (feature) => (
-                  <div
-                    key={feature}
-                    className="flex items-start gap-3"
-                  >
-                    <Check
-                      size={16}
-                      className="mt-1 shrink-0 text-[#0C6B58]"
-                    />
-
-                    <p className="text-sm text-gray-700">
-                      {feature}
-                    </p>
-                  </div>
-                )
-              )}
+              {plan.features.map((feature) => (
+                <div key={feature} className="flex items-start gap-3">
+                  <Check
+                    size={16}
+                    className="mt-1 shrink-0 text-[#0C6B58]"
+                  />
+                  <p className="text-sm text-gray-700">{feature}</p>
+                </div>
+              ))}
             </div>
 
             {!plan.current && (
