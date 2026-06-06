@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useUserName } from "@/hooks/useUserName";
 
 const weeklyBars = [
