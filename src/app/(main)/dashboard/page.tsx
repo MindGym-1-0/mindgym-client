@@ -55,12 +55,12 @@ export default function DashboardPage() {
       company: interview.company,
       role: interview.role,
     });
-    router.push("/sessions/setup/prep-type");
+    router.push("/sessions/setup/emotions");
   }
 
   function handleStartSession() {
     clearSetup();
-    router.push("/sessions/setup/prep-type");
+    router.push("/sessions/setup/emotions");
   }
 
   useEffect(() => {
