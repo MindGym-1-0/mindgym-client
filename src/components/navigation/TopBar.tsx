@@ -73,9 +73,10 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
           disabled={isLoggingOut}
           title="Log out"
           aria-label="Log out"
-          className="rounded-full border border-gray-200 p-2 text-gray-500 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-2 text-sm text-gray-500 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors disabled:opacity-50"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
+          <span>{isLoggingOut ? "Logging out…" : "Log out"}</span>
         </button>
       </div>
     </header>
