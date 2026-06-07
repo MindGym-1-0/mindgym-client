@@ -1,5 +1,13 @@
 "use client";
 
+export interface GapAnalysis {
+  mindset_gap: string;
+  mindset_gap_detail: string;
+  hunting_gap: string;
+  hunting_gap_detail: string;
+  baseline_anxiety_note: string;
+}
+
 interface FormData {
   employmentStatus: string;
   searchTimeline: string;
@@ -22,6 +30,7 @@ interface Props {
   onComplete: () => void;
   onDashboard: () => void;
   isLoading?: boolean;
+  gapAnalysis?: GapAnalysis;
 }
 
 export function Step9Summary({
@@ -29,6 +38,7 @@ export function Step9Summary({
   onComplete,
   onDashboard,
   isLoading = false,
+  gapAnalysis,
 }: Props) {
 
   const anxietyLevel =
@@ -76,13 +86,19 @@ export function Step9Summary({
   const finalRounds =
     formData.activity?.finalRounds || 0;
 
+  const mindsetTitle = gapAnalysis?.mindset_gap ?? mindsetMap[formData.emotionalChallenge] ?? "Confidence gap";
+  const mindsetBody = gapAnalysis?.mindset_gap_detail ?? "The silence and rejections are eroding confidence faster than new applications are rebuilding it.";
+  const huntingTitle = gapAnalysis?.hunting_gap ?? "Screening → Final round conversion";
+  const huntingBody = gapAnalysis?.hunting_gap_detail ?? `${applications} applications → ${interviews} screenings → ${finalRounds} final rounds. The bottleneck is at the final stage, not application volume.`;
+  const anxietyNote = gapAnalysis?.baseline_anxiety_note ?? `${anxietyLevel} — you have capacity to work. Maya will aim to get this to 2–3 through consistent session work. Every session records a pre and post score so you can track the real change.`;
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {isLoading && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#042E2B]/90 backdrop-blur-sm">
           <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin mb-6" />
-          <p className="text-white text-lg font-semibold">Please hold on</p>
-          <p className="text-white/70 text-sm mt-1">Your session is about to begin…</p>
+          <p className="text-white text-lg font-semibold">Analyzing your profile</p>
+          <p className="text-white/70 text-sm mt-1">Maya is personalizing your first session…</p>
         </div>
       )}
       {/* Header */}
@@ -115,15 +131,11 @@ export function Step9Summary({
             </p>
 
             <h3 className="font-semibold text-red-700 mb-2">
-              {mindsetMap[
-                formData.emotionalChallenge
-              ] || "Confidence gap"}
+              {mindsetTitle}
             </h3>
 
             <p className="text-sm text-red-700">
-              The silence and rejections are eroding
-              confidence faster than new applications
-              are rebuilding it.
+              {mindsetBody}
             </p>
           </div>
 
@@ -135,15 +147,11 @@ export function Step9Summary({
             </p>
 
             <h3 className="font-semibold text-amber-700 mb-2">
-              Screening → Final round conversion
+              {huntingTitle}
             </h3>
 
             <p className="text-sm text-amber-700">
-              {applications} applications →{" "}
-              {interviews} screenings →{" "}
-              {finalRounds} final rounds.
-              The bottleneck is at the final stage,
-              not application volume.
+              {huntingBody}
             </p>
           </div>
         </div>
@@ -157,11 +165,7 @@ export function Step9Summary({
           </h3>
 
           <p className="text-sm text-teal-900">
-            {anxietyLevel} — you have capacity to
-            work. Maya will aim to get this to 2–3
-            through consistent session work. Every
-            session records a pre and post score so
-            you can track the real change.
+            {anxietyNote}
           </p>
         </div>
       </div>
