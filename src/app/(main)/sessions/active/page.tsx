@@ -26,6 +26,7 @@ export default function ActiveSessionPage() {
   const [audioReady, setAudioReady] = useState(false);
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentUrlRef = useRef<string | null>(null);
@@ -85,6 +86,7 @@ export default function ActiveSessionPage() {
       revokeCurrentUrl();
       currentPhaseRef.current = nextPhaseIndex;
       setCurrentPhase(nextPhaseIndex);
+      setIsPaused(false);
       if (nextUrlRef.current && audioRef.current) {
         currentUrlRef.current = nextUrlRef.current;
         nextUrlRef.current = null;
@@ -188,12 +190,25 @@ export default function ActiveSessionPage() {
     if (!audioMode || !sessionStarted) return;
     if (audioRef.current) audioRef.current.pause();
     setAudioMode(false);
+    setIsPaused(false);
     startTypewriter(currentPhase);
+  };
+
+  const handlePauseResume = () => {
+    if (!audioRef.current) return;
+    if (isPaused) {
+      audioRef.current.play().catch(() => {});
+      setIsPaused(false);
+    } else {
+      audioRef.current.pause();
+      setIsPaused(true);
+    }
   };
 
   const skipOrAdvance = () => {
     if (audioMode) {
       if (audioRef.current) audioRef.current.pause();
+      setIsPaused(false);
       revokeCurrentUrl();
       if (currentPhase >= 4) {
         router.push("/sessions/feedback");
@@ -301,6 +316,15 @@ export default function ActiveSessionPage() {
                 {isTyping && <span className="animate-pulse">▋</span>}
               </p>
               <div className="flex gap-4 mt-10">
+                {audioMode && (
+                  <button
+                    onClick={handlePauseResume}
+                    className="bg-white/20 hover:bg-white/30 text-white px-5 py-3 rounded-xl transition-colors"
+                    aria-label={isPaused ? "Resume audio" : "Pause audio"}
+                  >
+                    {isPaused ? "▶ Resume" : "⏸ Pause"}
+                  </button>
+                )}
                 {isLast ? (
                   <button onClick={skipOrAdvance} className="bg-[#1A8A74] px-5 py-3 rounded-xl">
                     {audioMode || isTyping ? "Skip →" : "Finish session →"}
