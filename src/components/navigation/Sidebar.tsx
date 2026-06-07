@@ -61,10 +61,9 @@ const navItems = [
       },
       {
         label: "Sessions",
-        href: "/sessions",
+        href: "/sessions/history",
         icon: BookOpen,
         children: [
-          { label: "Saved Sessions", href: "/sessions" },
           {
             label: "Session History",
             href: "/sessions/history",
