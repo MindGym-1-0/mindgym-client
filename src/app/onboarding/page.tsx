@@ -10,7 +10,7 @@ import { Step5CompanyType } from "@/components/Step5CompanyType";
 import { Step6ActivityMetrics } from "@/components/Step6ActivityMetrics";
 import { Step7EmotionChallenge } from "@/components/Step7EmotionChallenge";
 import { Step8BaselineAnxiety } from "@/components/Step8BaselineAnxiety";
-import { Step9Summary } from "@/components/Step9Summary";
+import { Step9Summary, type GapAnalysis } from "@/components/Step9Summary";
 
 import { supabase } from "@/lib/supabase/client";
 import { writeActive } from "@/lib/session/store";
@@ -80,6 +80,8 @@ export default function OnboardingWizard() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [gapAnalysis, setGapAnalysis] = useState<GapAnalysis | null>(null);
+  const [firstSession, setFirstSession] = useState<{ session_id: string; script: { phase1: string; phase2: string; phase3: string; phase4: string; phase5: string } } | null>(null);
 
   const canProceed = () => {
     switch (currentStep) {
@@ -105,9 +107,11 @@ export default function OnboardingWizard() {
   };
 
   const handleNext = () => {
-    if (canProceed() && currentStep < 9) {
-      setCurrentStep((prev) => prev + 1);
-      setError("");
+    if (!canProceed() || currentStep >= 9) return;
+    setCurrentStep((prev) => prev + 1);
+    setError("");
+    if (currentStep === 8) {
+      void fetchOnboardingData();
     }
   };
 
@@ -173,7 +177,7 @@ export default function OnboardingWizard() {
     }
   };
 
-  const handleSubmit = async () => {
+  const fetchOnboardingData = async () => {
     if (isLoading) return;
 
     try {
@@ -234,12 +238,8 @@ export default function OnboardingWizard() {
         throw new Error(data?.detail || "Onboarding failed");
       }
 
-      writeActive({
-        session_id: data.first_session.session_id,
-        script: data.first_session.script,
-        anxiety_level_before: formData.anxiety,
-      });
-      router.push("/sessions/active");
+      setGapAnalysis(data.gap_analysis ?? null);
+      setFirstSession(data.first_session);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong"
@@ -247,6 +247,16 @@ export default function OnboardingWizard() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = () => {
+    if (!firstSession) return;
+    writeActive({
+      session_id: firstSession.session_id,
+      script: firstSession.script,
+      anxiety_level_before: formData.anxiety,
+    });
+    router.push("/sessions/active");
   };
 
   const renderStep = () => {
@@ -330,6 +340,7 @@ export default function OnboardingWizard() {
             onComplete={handleSubmit}
             onDashboard={handleSaveAndGoToDashboard}
             isLoading={isLoading}
+            gapAnalysis={gapAnalysis ?? undefined}
           />
         );
       default:
