@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import LogoutButton from "../../../components/auth/logout-button";
 import { useUserName } from "@/hooks/useUserName";
+import { getGreeting } from "@/lib/greeting";
 import { getInterviews, type InterviewItem } from "@/lib/interviews/api";
 import { getSessionHistory } from "@/lib/session/api";
 import { writeSetup, clearSetup } from "@/lib/session/store";
@@ -82,12 +82,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-5xl font-semibold text-[#1A1A1A]">Good morning, {name}.</h1>
-          <p className="mt-2 text-gray-500">{dateStr}</p>
-        </div>
-        <LogoutButton />
+      <div>
+        <h1 className="text-5xl font-semibold text-[#1A1A1A]">{getGreeting(name)}</h1>
+        <p className="mt-2 text-gray-500">{dateStr}</p>
       </div>
 
       {nextInterview ? (
