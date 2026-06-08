@@ -13,94 +13,161 @@ interface Props {
 
 type ActivityField = keyof ActivityData;
 
+const APPLICATION_RANGES = [
+  { label: "0 - 05", value: 0 },
+  { label: "05 - 10", value: 5 },
+  { label: "10 - 20", value: 10 },
+  { label: "20 - 40", value: 20 },
+  { label: "40 - 50", value: 40 },
+  { label: "50+", value: 50 },
+];
+
 export function Step6ActivityMetrics({
   value,
   onChange,
 }: Props) {
-  const update = (
+  const updateCounter = (
     field: ActivityField,
     amount: number
   ) => {
     onChange({
       ...value,
-      [field]: Math.max(0, value[field] + amount),
+      [field]: Math.max(
+        0,
+        value[field] + amount
+      ),
     });
   };
 
-  const rows: [ActivityField, string, string][] = [
-    [
-      "applications",
-      "Applications sent",
-      "Jobs you've applied to",
-    ],
-    [
-      "recruiterCalls",
-      "Recruiter calls",
-      "Initial recruiter conversations",
-    ],
-    [
-      "interviews",
-      "Screening interviews",
-      "First-round or screening interviews",
-    ],
-    [
-      "finalRounds",
-      "Final-round interviews",
-      "Panel, onsite, or final rounds",
-    ],
-    [
-      "offers",
-      "Offers received",
-      "Verbal or written offers",
-    ],
+  const counterRows: {
+    field: ActivityField;
+    title: string;
+    subtitle: string;
+  }[] = [
+    {
+      field: "recruiterCalls",
+      title: "Recruiter calls or emails received",
+      subtitle: "Inbound interest from recruiters",
+    },
+    {
+      field: "interviews",
+      title: "Screening / first-round interviews",
+      subtitle:
+        "Phone screens, intro calls, video rounds",
+    },
+    {
+      field: "finalRounds",
+      title: "On-site / final round interviews",
+      subtitle:
+        "Panel, technical, or on-site rounds",
+    },
+    {
+      field: "offers",
+      title: "Offers received",
+      subtitle: "Formal offers in hand",
+    },
   ];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold text-ink mb-3">
-          How active has your search been recently?
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
+
+      <div className="text-center mb-8">
+        <h2 className="text-h2 font-display text-ink mb-3">
+          In the last week, how active have you been?
         </h2>
 
-        <p className="text-ink-60 max-w-2xl mx-auto">
-          These numbers help Maya understand whether your challenge is
-          confidence, strategy, interview performance, or search volume.
+        <p className="text-sm text-ink-60 max-w-xl mx-auto">
+          These numbers help Maya identify your
+          hunting gap — the difference between
+          effort and outcome — and surface where
+          to focus your energy.
         </p>
       </div>
 
-      <div className="bg-white border border-border rounded-2xl p-6 space-y-4">
-        {rows.map(([field, title, description]) => (
+      {/* Main Card */}
+
+      <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+        {/* Applications Dropdown */}
+
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <div>
+            <p className="font-medium text-sm text-ink">
+              Applications sent
+            </p>
+
+            <p className="text-xs text-ink-60 mt-1">
+              Total roles applied to
+            </p>
+          </div>
+
+          <select
+            value={value.applications}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                applications: Number(
+                  e.target.value
+                ),
+              })
+            }
+            className="w-40 rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          >
+            {APPLICATION_RANGES.map((option) => (
+              <option
+                key={option.label}
+                value={option.value}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Counter Rows */}
+
+        {counterRows.map((row) => (
           <div
-            key={field}
-            className="flex items-center justify-between border border-border rounded-xl p-4"
+            key={row.field}
+            className="flex items-center justify-between px-5 py-4 border-b border-border last:border-b-0"
           >
             <div>
-              <h3 className="font-semibold text-base">
-                {title}
-              </h3>
+              <p className="font-medium text-sm text-ink">
+                {row.title}
+              </p>
 
-              <p className="text-sm text-ink-60 mt-1">
-                {description}
+              <p className="text-xs text-ink-60 mt-1">
+                {row.subtitle}
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => update(field, -1)}
-                className="w-10 h-10 rounded-full border border-border hover:bg-gray-50 text-lg font-semibold"
+                onClick={() =>
+                  updateCounter(
+                    row.field,
+                    -1
+                  )
+                }
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-lg font-semibold hover:bg-gray-50"
               >
                 −
               </button>
 
-              <span className="w-10 text-center text-xl font-semibold">
-                {value[field]}
+              <span className="w-8 text-center font-semibold">
+                {value[row.field]}
               </span>
 
               <button
                 type="button"
-                onClick={() => update(field, 1)}
-                className="w-10 h-10 rounded-full border border-border hover:bg-gray-50 text-lg font-semibold"
+                onClick={() =>
+                  updateCounter(
+                    row.field,
+                    1
+                  )
+                }
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-lg font-semibold hover:bg-gray-50"
               >
                 +
               </button>
@@ -109,13 +176,19 @@ export function Step6ActivityMetrics({
         ))}
       </div>
 
-      <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
+      {/* Insight Card */}
+
+      <div className="mt-4 rounded-xl border border-teal-200 bg-teal-50 p-4">
+        <p className="font-semibold text-sm text-teal-900 mb-2">
+          Maya's early read:
+        </p>
+
         <p className="text-sm text-teal-900">
-          💡 <strong>Why this matters:</strong> Maya uses your recent
-          activity levels to identify whether the biggest opportunity
-          lies in increasing application volume, improving interview
-          performance, strengthening networking efforts, or building
-          confidence throughout the process.
+          You're converting applications to
+          screenings at a healthy rate. The gap to
+          watch is screening → final round.
+          Maya will help strengthen confidence and
+          closing momentum in your sessions.
         </p>
       </div>
     </div>

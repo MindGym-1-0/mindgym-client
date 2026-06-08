@@ -49,7 +49,7 @@ async function hasSupabaseSession(request: NextRequest): Promise<boolean> {
   return Boolean(user);
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAuthRoute = AUTH_ROUTES.has(pathname);
   const requiresAuth = isProtectedRoute(pathname);
@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = backendCookieAuth || supabaseAuth;
 
   if (process.env.NODE_ENV !== "production") {
-    console.info("[auth-middleware]", {
+    console.info("[auth-proxy]", {
       path: pathname,
       requiresAuth,
       isAuthRoute,

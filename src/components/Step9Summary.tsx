@@ -1,3 +1,13 @@
+"use client";
+
+export interface GapAnalysis {
+  mindset_gap: string;
+  mindset_gap_detail: string;
+  hunting_gap: string;
+  hunting_gap_detail: string;
+  baseline_anxiety_note: string;
+}
+
 interface FormData {
   employmentStatus: string;
   searchTimeline: string;
@@ -19,13 +29,18 @@ interface Props {
   formData: FormData;
   onComplete: () => void;
   onDashboard: () => void;
+  isLoading?: boolean;
+  gapAnalysis?: GapAnalysis;
 }
 
 export function Step9Summary({
   formData,
   onComplete,
   onDashboard,
+  isLoading = false,
+  gapAnalysis,
 }: Props) {
+
   const anxietyLevel =
     formData.anxiety >= 8
       ? "High"
@@ -33,133 +48,161 @@ export function Step9Summary({
       ? "Moderate"
       : "Low";
 
+  const mindsetMap: Record<string, string> = {
+    "Rejection and silence": "Rejection sensitivity",
+    "Interview anxiety": "Interview confidence",
+    "Imposter syndrome": "Self-belief gap",
+    Burnout: "Energy depletion",
+    Uncertainty: "Direction uncertainty",
+    "Financial pressure": "Pressure overload",
+  };
+
+  const sessionMap: Record<string, string> = {
+    "Rejection and silence":
+      "Envisioning success — breaking the rejection spiral",
+
+    "Interview anxiety":
+      "Visualising calm — entering interviews with confidence",
+
+    "Imposter syndrome":
+      "Rewriting self-belief — owning your strengths",
+
+    Burnout:
+      "Restoring momentum — recovering from job search fatigue",
+
+    Uncertainty:
+      "Finding direction — creating clarity and focus",
+
+    "Financial pressure":
+      "Reducing pressure — regaining a sense of control",
+  };
+
+  const applications =
+    formData.activity?.applications || 0;
+
+  const interviews =
+    formData.activity?.interviews || 0;
+
+  const finalRounds =
+    formData.activity?.finalRounds || 0;
+
+  const mindsetTitle = gapAnalysis?.mindset_gap ?? mindsetMap[formData.emotionalChallenge] ?? "Confidence gap";
+  const mindsetBody = gapAnalysis?.mindset_gap_detail ?? "The silence and rejections are eroding confidence faster than new applications are rebuilding it.";
+  const huntingTitle = gapAnalysis?.hunting_gap ?? "Screening → Final round conversion";
+  const huntingBody = gapAnalysis?.hunting_gap_detail ?? `${applications} applications → ${interviews} screenings → ${finalRounds} final rounds. The bottleneck is at the final stage, not application volume.`;
+  const anxietyNote = gapAnalysis?.baseline_anxiety_note ?? `${anxietyLevel} — you have capacity to work. Maya will aim to get this to 2–3 through consistent session work. Every session records a pre and post score so you can track the real change.`;
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#042E2B]/90 backdrop-blur-sm">
+          <div className="w-12 h-12 rounded-full border-4 border-white/20 border-t-white animate-spin mb-6" />
+          <p className="text-white text-lg font-semibold">Analyzing your profile</p>
+          <p className="text-white/70 text-sm mt-1">Maya is personalizing your first session…</p>
+        </div>
+      )}
       {/* Header */}
+
       <div className="text-center">
         <h2 className="text-4xl font-bold text-ink mb-3">
           Here's what Maya found.
         </h2>
 
         <p className="text-ink-60 max-w-2xl mx-auto">
-          Based on your onboarding responses, Maya has identified the
-          areas that will have the biggest impact on your job search.
+          Based on your answers, Maya has identified
+          your key gaps and built your first session
+          around them.
         </p>
       </div>
 
-      {/* Main Insight */}
-      <div className="bg-white border border-border rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center">
-            🧠
-          </div>
+      {/* Gap Analysis */}
 
-          <div>
-            <p className="text-sm text-teal-700 font-medium">
-              Maya's Assessment
+      <div className="bg-white border border-border rounded-2xl p-5 shadow-sm">
+        <p className="text-xs text-ink-60 mb-4">
+          Maya&apos;s gap analysis
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Mindset Gap */}
+
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+            <p className="text-xs font-medium text-red-700 mb-2">
+              Mindset gap
             </p>
 
-            <h3 className="text-xl font-semibold">
-              Confidence & Search Momentum
+            <h3 className="font-semibold text-red-700 mb-2">
+              {mindsetTitle}
             </h3>
+
+            <p className="text-sm text-red-700">
+              {mindsetBody}
+            </p>
+          </div>
+
+          {/* Hunting Gap */}
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-xs font-medium text-amber-700 mb-2">
+              Hunting gap
+            </p>
+
+            <h3 className="font-semibold text-amber-700 mb-2">
+              {huntingTitle}
+            </h3>
+
+            <p className="text-sm text-amber-700">
+              {huntingBody}
+            </p>
           </div>
         </div>
 
-        <p className="text-ink-70 leading-relaxed">
-          Your responses suggest that your biggest opportunity isn't
-          necessarily your qualifications — it's maintaining momentum,
-          confidence, and consistency throughout the search process.
-          Maya will focus on helping you reduce anxiety, improve
-          resilience, and approach opportunities with more clarity.
+        {/* Anxiety Card */}
+
+        <div className="mt-4 rounded-xl border border-teal-200 bg-teal-50 p-4">
+          <h3 className="font-semibold text-teal-900 mb-2">
+            Your baseline anxiety:{" "}
+            {formData.anxiety}/10
+          </h3>
+
+          <p className="text-sm text-teal-900">
+            {anxietyNote}
+          </p>
+        </div>
+      </div>
+
+      {/* First Session Card */}
+
+      <div className="rounded-3xl bg-gradient-to-r from-[#042E2B] to-[#0A4D45] p-8 text-white">
+        <p className="text-xs opacity-70 mb-3">
+          Your first session
         </p>
-      </div>
 
-      {/* Summary Grid */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-white border border-border rounded-2xl p-5">
-          <p className="text-sm text-ink-60 mb-2">
-            Target Role
-          </p>
-
-          <h3 className="font-semibold text-lg">
-            {formData.role}
-          </h3>
-        </div>
-
-        <div className="bg-white border border-border rounded-2xl p-5">
-          <p className="text-sm text-ink-60 mb-2">
-            Preferred Company Type
-          </p>
-
-          <h3 className="font-semibold text-lg">
-            {formData.companyType}
-          </h3>
-        </div>
-
-        <div className="bg-white border border-border rounded-2xl p-5">
-          <p className="text-sm text-ink-60 mb-2">
-            Search Duration
-          </p>
-
-          <h3 className="font-semibold text-lg">
-            {formData.searchTimeline}
-          </h3>
-        </div>
-
-        <div className="bg-white border border-border rounded-2xl p-5">
-          <p className="text-sm text-ink-60 mb-2">
-            Baseline Anxiety
-          </p>
-
-          <h3 className="font-semibold text-lg">
-            {formData.anxiety}/10 ({anxietyLevel})
-          </h3>
-        </div>
-      </div>
-
-      {/* Emotional Focus */}
-      <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6">
-        <h3 className="font-semibold text-lg text-teal-900 mb-2">
-          Primary Coaching Focus
+        <h3 className="text-3xl font-semibold mb-4">
+          {sessionMap[
+            formData.emotionalChallenge
+          ] ||
+            "Envisioning success — breaking the rejection spiral"}
         </h3>
 
-        <p className="text-teal-900">
-          <strong>{formData.emotionalChallenge}</strong>
+        <p className="text-sm leading-relaxed text-white/80 max-w-2xl">
+          A 10-minute guided visualisation session.
+          Maya will walk you through rebuilding
+          confidence, reducing emotional fatigue,
+          and creating momentum for your next
+          opportunity.
         </p>
 
-        <p className="mt-3 text-sm text-teal-800">
-          Maya will tailor your first sessions around this challenge,
-          helping you build confidence, develop coping strategies, and
-          create a more sustainable job search process.
-        </p>
-      </div>
-
-      {/* First Session Preview */}
-      <div className="bg-white border border-border rounded-2xl p-6">
-        <p className="text-sm text-teal-700 font-medium mb-2">
-          Recommended First Session
-        </p>
-
-        <h3 className="text-xl font-semibold mb-3">
-          Breaking the Stress Cycle
-        </h3>
-
-        <p className="text-ink-60">
-          Learn practical techniques to reduce anxiety, improve focus,
-          and approach interviews and applications with more confidence.
-        </p>
-
-        <div className="flex flex-wrap gap-2 mt-4">
-          <span className="px-3 py-1 rounded-full bg-gray-100 text-sm">
-            Confidence
+        <div className="flex flex-wrap gap-2 mt-6">
+          <span className="px-3 py-1 rounded-md bg-white/10 text-xs">
+            10 minutes
           </span>
 
-          <span className="px-3 py-1 rounded-full bg-gray-100 text-sm">
-            Anxiety Reduction
+          <span className="px-3 py-1 rounded-md bg-white/10 text-xs">
+            Visualisation
           </span>
 
-          <span className="px-3 py-1 rounded-full bg-gray-100 text-sm">
-            Resilience
+          <span className="px-3 py-1 rounded-md bg-white/10 text-xs">
+            Recovery
           </span>
         </div>
       </div>
@@ -168,16 +211,21 @@ export function Step9Summary({
       <div className="text-center pt-2 flex flex-col gap-3">
         <button
           onClick={onComplete}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-xl font-semibold transition-all"
+          disabled={isLoading}
+          className="w-full bg-[#0F766E] hover:bg-[#0D6B64] text-white py-4 rounded-2xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Begin my first session →
         </button>
-        <button
-          onClick={onDashboard}
-          className="text-gray-500 hover:text-gray-700 text-sm underline transition-all"
-        >
-          Go to Dashboard
-        </button>
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={onDashboard}
+            className="text-sm text-gray-500 underline hover:text-gray-800"
+          >
+            Go to Dashboard
+          </button>
+        </div>
       </div>
     </div>
   );

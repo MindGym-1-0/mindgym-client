@@ -100,7 +100,9 @@ export default function CoachPage() {
     }
 
     load();
-    return () => { isActive = false; };
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const recommendedSessions = useMemo(() => {

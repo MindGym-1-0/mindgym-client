@@ -2,7 +2,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
-async function getToken(): Promise<string> {
+export async function getToken(): Promise<string> {
   const supabase = getSupabaseBrowserClient();
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -105,4 +105,33 @@ export async function getSessionHistory(): Promise<SessionHistoryItem[]> {
     throw new Error(`History fetch failed (${res.status}): ${text}`);
   }
   return res.json() as Promise<SessionHistoryItem[]>;
+}
+
+export interface SessionDetail {
+  id: string;
+  preparation_for: string;
+  current_feeling: string | null;
+  desired_feeling: string | null;
+  time_available: string | null;
+  company: string | null;
+  role: string | null;
+  feeling_note: string | null;
+  anxiety_level_before: number;
+  anxiety_level_after: number | null;
+  anxiety_level_delta: number | null;
+  script: SessionScript;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export async function getSessionDetail(sessionId: string): Promise<SessionDetail> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Session fetch failed (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<SessionDetail>;
 }
