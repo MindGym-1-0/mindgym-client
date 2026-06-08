@@ -5,6 +5,8 @@ import type {
   CoachPrepPlanRequest,
   CoachPrepPlanResponse,
   InterviewChecklistResponse,
+  InterviewOutcome,
+  InterviewOutcomeResponse,
 } from "./types";
 
 type ApiErrorPayload = {
@@ -256,4 +258,43 @@ export async function createInterview(data: {
     throw new Error("Malformed create interview response.");
   }
   return payload as Interview;
+}
+
+function assertInterviewOutcomeResponse(payload: unknown): asserts payload is InterviewOutcomeResponse {
+  const entityName = "interview outcome";
+  assertObject(payload, entityName);
+  assertStringField(payload.id, "id", entityName);
+  assertStringField(payload.outcome, "outcome", entityName);
+  assertNumberField(payload.check_in_attempts, "check_in_attempts", entityName);
+
+  const allowedOutcomes: InterviewOutcome[] = ["offer", "no_offer", "awaiting", "pending"];
+  if (!allowedOutcomes.includes(payload.outcome as InterviewOutcome)) {
+    throw new Error(`Malformed ${entityName} response: outcome must be a supported interview outcome.`);
+  }
+
+  if (payload.next_check_in_at !== null && payload.next_check_in_at !== undefined) {
+    assertStringField(payload.next_check_in_at, "next_check_in_at", entityName);
+  }
+}
+
+export async function updateInterviewOutcome(
+  interviewId: string,
+  outcome: InterviewOutcome
+): Promise<InterviewOutcomeResponse> {
+  const token = await getToken();
+  const encodedInterviewId = encodeURIComponent(interviewId);
+  const response = await fetch(buildApiUrl(`/api/interviews/${encodedInterviewId}/outcome`), {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ outcome }),
+  });
+
+  if (!response.ok) await throwCoachApiError(response);
+
+  const payload = await parseJsonSafely(response);
+  assertInterviewOutcomeResponse(payload);
+  return payload;
 }
