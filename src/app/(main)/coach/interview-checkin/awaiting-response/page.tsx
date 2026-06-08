@@ -30,7 +30,7 @@ export default function AwaitingResponsePage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8">
       <div className="rounded-3xl bg-[#F6EAD2] p-10 text-center">
-        <div className="mb-5 text-6xl">Waiting</div>
+        <div className="mb-5 text-6xl">⏰</div>
 
         <p className="mb-3 text-sm text-[#9C6B00]">
           Product Designer @ Google
@@ -52,7 +52,7 @@ export default function AwaitingResponsePage() {
             disabled={!selectedFollowUp}
             className="rounded-xl bg-[#005F56] px-6 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Set a follow-up reminder -&gt;
+            Set a follow-up reminder →
           </button>
 
           <button type="button" className="rounded-xl border border-[#D6C7A4] px-6 py-3">
@@ -78,9 +78,9 @@ export default function AwaitingResponsePage() {
           </h2>
 
           <ul className="space-y-3 text-[#4B5563]">
-            <li>* If you haven't heard in 5 business days, a polite follow-up is normal.</li>
-            <li>* Keep applying elsewhere.</li>
-            <li>* Write Maya to draft a follow-up note.</li>
+            <li>• If you haven't heard in 5 business days, a polite follow-up is normal.</li>
+            <li>• Keep applying elsewhere.</li>
+            <li>• Write Maya to draft a follow-up note.</li>
           </ul>
         </div>
 
@@ -90,9 +90,9 @@ export default function AwaitingResponsePage() {
           </h2>
 
           <ul className="space-y-3 text-[#4B5563]">
-            <li>* Anxiety during the wait is normal.</li>
-            <li>* The outcome doesn't retroactively change your preparation.</li>
-            <li>* A short grounding session can help.</li>
+            <li>• Anxiety during the wait is normal.</li>
+            <li>• The outcome doesn't retroactively change your preparation.</li>
+            <li>• A short grounding session can help.</li>
           </ul>
         </div>
       </div>
