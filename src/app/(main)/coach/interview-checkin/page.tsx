@@ -18,7 +18,7 @@ const options: OutcomeOption[] = [
   {
     title: "I got the job",
     description: "I received an offer, or I'm expecting one very soon.",
-    emoji: "Celebration",
+    emoji: "🎉",
     route: "/coach/interview-checkin/got-job",
     border: "border-[#9EE5D8]",
     outcome: "offer"
@@ -26,7 +26,7 @@ const options: OutcomeOption[] = [
   {
     title: "Still waiting to hear back",
     description: "I haven't had a response yet. The limbo is real.",
-    emoji: "Waiting",
+    emoji: "⏳",
     route: "/coach/interview-checkin/awaiting-response",
     border: "border-[#E9E3D5]",
     outcome: "awaiting"
@@ -34,7 +34,7 @@ const options: OutcomeOption[] = [
   {
     title: "I didn't get the role",
     description: "I received a rejection, or I could tell during the interview it didn't go well.",
-    emoji: "Rejection",
+    emoji: "💔",
     route: "/coach/interview-checkin/rejection-recovery",
     border: "border-[#F2CACA]",
     outcome: "no_offer"
@@ -46,17 +46,12 @@ function mapOutcomeError(error: unknown) {
     return "We couldn't save your check-in right now. Please try again shortly.";
   }
 
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
   return "We couldn't save your check-in. Please try again.";
 }
 
 export default function InterviewCheckinPage() {
   const router = useRouter();
   const [interviewId, setInterviewId] = useState<string | null>(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,7 +125,7 @@ export default function InterviewCheckinPage() {
             className={`flex w-full items-center justify-between rounded-3xl border ${option.border} bg-white p-6 transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60`}
           >
             <div className="flex items-center gap-5">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F6F6F4] text-sm font-medium text-[#4B5563]">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F6F6F4] text-2xl text-[#4B5563]">
                 {option.emoji}
               </div>
 
@@ -146,7 +141,7 @@ export default function InterviewCheckinPage() {
             </div>
 
             <span className="text-2xl text-[#9CA3AF]">
-              {isSubmitting ? "..." : "->"}
+              {isSubmitting ? "..." : "→"}
             </span>
           </button>
         ))}
