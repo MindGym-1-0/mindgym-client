@@ -57,23 +57,8 @@ const navItems = [
           },
 
           {
-            label: "Coach Prep",
-            href: "/coach/prep",
-          },
-
-          {
             label: "My Interviews",
             href: "/coach/interviews",
-          },
-
-          {
-            label: "Interview Checklist",
-            href: "/coach/checklist",
-          },
-
-          {
-            label: "Post Interview Check-in",
-            href: "/coach/interview-checkin",
           },
         ],
       },
