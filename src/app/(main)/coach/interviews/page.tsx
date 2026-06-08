@@ -150,7 +150,7 @@ export default function InterviewsPage() {
                   <p className="text-sm text-gray-500">{formatPastDate(interview.interview_date)}</p>
                 </div>
                 <button
-                  onClick={() => router.push("/coach/interview-checkin")}
+                  onClick={() => router.push(`/coach/interview-checkin?interview_id=${interview.id}`)}
                   className="rounded-lg border px-4 py-2 text-sm"
                 >
                   Recovery session →
