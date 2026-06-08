@@ -13,9 +13,9 @@ function formatInterviewDate(raw: string): string {
     const now = new Date();
     const diffDays = Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    if (diffDays === 0) return `Today • ${time}`;
-    if (diffDays === 1) return `Tomorrow • ${time}`;
-    if (diffDays > 1) return `In ${diffDays} days • ${time}`;
+    if (diffDays === 0) return `Today - ${time}`;
+    if (diffDays === 1) return `Tomorrow - ${time}`;
+    if (diffDays > 1) return `In ${diffDays} days - ${time}`;
     return d.toLocaleDateString();
   } catch {
     return raw;
@@ -108,28 +108,50 @@ export default function InterviewsPage() {
       ) : null}
 
       <div className="space-y-5">
-        {upcoming.map((interview) => (
-          <div
-            key={interview.id}
-            className="flex items-center justify-between rounded-2xl bg-white p-6 shadow-sm"
-          >
-            <div>
-              <h2 className="text-lg font-semibold">
-                {interview.company} — {interview.role}
-              </h2>
-              <p className="text-gray-500">
-                {formatInterviewDate(interview.interview_date)}
-                {interview.event_type ? ` • ${interview.event_type}` : ""}
-              </p>
-            </div>
-            <button
-              onClick={() => router.push(`/coach/prep?interview_id=${interview.id}`)}
-              className="rounded-lg bg-[#0D7C66] px-4 py-2 text-white"
+        {upcoming.map((interview) => {
+          const hasInterviewId = Boolean(interview.id?.trim());
+
+          return (
+            <div
+              key={interview.id}
+              className="flex items-center justify-between rounded-2xl bg-white p-6 shadow-sm"
             >
-              Start prep →
-            </button>
-          </div>
-        ))}
+              <div>
+                <h2 className="text-lg font-semibold">
+                  {interview.company} - {interview.role}
+                </h2>
+                <p className="text-gray-500">
+                  {formatInterviewDate(interview.interview_date)}
+                  {interview.event_type ? ` - ${interview.event_type}` : ""}
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  disabled={!hasInterviewId}
+                  onClick={() => {
+                    if (!hasInterviewId) return;
+                    router.push(`/coach/checklist?interview_id=${interview.id}`);
+                  }}
+                  className="rounded-lg border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  View checklist
+                </button>
+                <button
+                  type="button"
+                  disabled={!hasInterviewId}
+                  onClick={() => {
+                    if (!hasInterviewId) return;
+                    router.push(`/coach/prep?interview_id=${interview.id}`);
+                  }}
+                  className="rounded-lg bg-[#0D7C66] px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {"Start prep ->"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {past.length > 0 ? (
@@ -145,7 +167,7 @@ export default function InterviewsPage() {
               >
                 <div>
                   <h3 className="font-medium">
-                    {interview.company} — {interview.role}
+                    {interview.company} - {interview.role}
                   </h3>
                   <p className="text-sm text-gray-500">{formatPastDate(interview.interview_date)}</p>
                 </div>
@@ -153,7 +175,7 @@ export default function InterviewsPage() {
                   onClick={() => router.push(`/coach/interview-checkin?interview_id=${interview.id}`)}
                   className="rounded-lg border px-4 py-2 text-sm"
                 >
-                  Recovery session →
+                  {"Recovery session ->"}
                 </button>
               </div>
             ))}
