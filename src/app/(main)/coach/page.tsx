@@ -54,7 +54,8 @@ function formatInterviewDate(raw: string): string {
   }
 }
 
-const FALLBACK_GREETING = "Your final interview is tomorrow. Let's make sure you go in feeling clear, not just prepared. Which session would you like to start with?";
+const FALLBACK_INTERVIEW_GREETING = "Your interview is coming up soon. Let's make sure you go in feeling clear, not just prepared. Which session would you like to start with?";
+const FALLBACK_GENERAL_GREETING = "You don't have any upcoming interviews right now. You can still do a general reset session today and stay mentally ready.";
 const FALLBACK_SUGGESTION = {
   text: "A 5-min breathing session tonight at 9 PM. The night before has the highest impact on next-day composure.",
 };
@@ -112,9 +113,10 @@ export default function CoachPage() {
     return FALLBACK_INSIGHTS;
   }, [coachHome]);
 
+  const hasUpcomingInterview = Boolean(upcomingInterview);
   const mayaGreeting = coachHome?.maya_greeting
     ? `${coachHome.maya_greeting} Which session would you like to start with?`
-    : `Hi ${name} 👋 — ${FALLBACK_GREETING}`;
+    : `Hi ${name} 👋 — ${hasUpcomingInterview ? FALLBACK_INTERVIEW_GREETING : FALLBACK_GENERAL_GREETING}`;
   const suggestionText = coachHome?.maya_suggests?.text || FALLBACK_SUGGESTION.text;
 
   function handleStartSession() {
@@ -170,7 +172,8 @@ export default function CoachPage() {
           ) : (
             <>
               <p className="text-sm font-medium text-[#E59B00]">No upcoming interviews</p>
-              <h2 className="mt-2 text-lg font-semibold">Add an interview to start prep</h2>
+              <h2 className="mt-2 text-lg font-semibold">Add an interview to get personalized prep</h2>
+              <p className="mt-1 text-sm text-gray-400">You can still do a general reset session today.</p>
             </>
           )}
 
@@ -179,13 +182,13 @@ export default function CoachPage() {
               onClick={handleStartSession}
               className="rounded-lg bg-[#0D7C66] px-4 py-2 text-sm text-white hover:bg-[#095c4c]"
             >
-              Start pre-interview session →
+              {upcomingInterview ? "Start pre-interview session →" : "Start general reset session →"}
             </button>
             <button
               onClick={() => router.push(upcomingInterview ? `/coach/checklist?interview_id=${upcomingInterview.id}` : "/coach/interviews")}
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm"
             >
-              View checklist
+              {upcomingInterview ? "View checklist" : "Add interview"}
             </button>
           </div>
         </div>
