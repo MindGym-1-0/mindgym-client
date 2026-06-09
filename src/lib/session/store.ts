@@ -8,7 +8,7 @@ export interface SetupDraft {
   preparation_for?: string;
   company?: string;
   role?: string;
-  desired_feeling?: 'calm' | 'grounded' | 'confident' | 'focused' | 'clear_minded' | 'composed';
+  desired_feeling?: ('calm' | 'grounded' | 'confident' | 'focused' | 'clear_minded' | 'composed')[];
   time_available?: '5 min' | '10 min' | '15 min';
 }
 

@@ -65,7 +65,9 @@ export default function SummaryPage() {
   };
 
   const prepLabel = setup.preparation_for ? (PREP_LABELS[setup.preparation_for] ?? setup.preparation_for) : "your session";
-  const desiredLabel = setup.desired_feeling ? (DESIRED_LABELS[setup.desired_feeling] ?? setup.desired_feeling) : null;
+  const desiredLabel = setup.desired_feeling?.length
+    ? setup.desired_feeling.map((v) => DESIRED_LABELS[v] ?? v).join(" and ")
+    : null;
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">

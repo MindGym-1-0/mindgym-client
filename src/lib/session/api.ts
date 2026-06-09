@@ -18,7 +18,7 @@ export async function getToken(): Promise<string> {
 export interface StartSessionRequest {
   preparation_for: string;
   current_feeling: string;
-  desired_feeling: string;
+  desired_feeling: string[];
   time_available: string;
   anxiety_level_before: number;
   company?: string;
