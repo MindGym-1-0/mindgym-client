@@ -5,8 +5,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CoachApiError, createInterview } from "../../../../../lib/coach/api";
-import { getCurrentPlan, type CurrentPlan } from "@/lib/subscriptions/api";
-import { TierLimitError } from "@/components/TierLimitError";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const EVENT_TYPES = [
   { value: "video_call", label: "Video call" },
@@ -27,7 +27,6 @@ export default function AddInterviewPage() {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan | null>(null);
   const [isTierLimitError, setIsTierLimitError] = useState(false);
 
   async function handleSave() {
@@ -52,13 +51,7 @@ export default function AddInterviewPage() {
     } catch (err) {
       if (err instanceof CoachApiError && err.status === 403) {
         setIsTierLimitError(true);
-        try {
-          const plan = await getCurrentPlan();
-          setCurrentPlan(plan);
-          setError("Interview limit reached for your current plan.");
-        } catch {
-          setError("You've reached your interview limit. Upgrade your plan to continue.");
-        }
+        setError("You've reached your interview limit. Upgrade your plan to continue.");
       } else if (err instanceof CoachApiError && err.status >= 500) {
         setError("Couldn't save the interview right now. Please try again shortly.");
       } else {
@@ -85,13 +78,23 @@ export default function AddInterviewPage() {
 
         {error && (
           <div>
-            {isTierLimitError && currentPlan ? (
-              <TierLimitError
-                type="interview"
-                currentTier={currentPlan.tier}
-                limit={currentPlan.interviews_limit}
-                used={currentPlan.interviews_used}
-              />
+            {isTierLimitError ? (
+              <div className="rounded-xl border border-[#FFA500] bg-[#FFF8E6] p-4">
+                <div className="flex gap-3">
+                  <div className="text-2xl">⚠️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[#8B5A00] mb-2">Interview limit reached</h3>
+                    <p className="text-sm text-[#8B5A00] mb-3">{error}</p>
+                    <Link
+                      href="/settings"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#FF8C00] hover:text-[#E67E00] transition"
+                    >
+                      View plans & upgrade
+                      <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
                 {error}

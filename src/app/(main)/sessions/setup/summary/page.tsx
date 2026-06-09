@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { readSetup, clearSetup, writeActive, SetupDraft } from "@/lib/session/store";
 import { startSession, SessionApiError } from "@/lib/session/api";
-import { getCurrentPlan, type CurrentPlan } from "@/lib/subscriptions/api";
-import { TierLimitError } from "@/components/TierLimitError";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const PREP_LABELS: Record<string, string> = {
   interview_tomorrow: "Interview tomorrow",
@@ -31,7 +31,6 @@ export default function SummaryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [setup, setSetup] = useState<SetupDraft>({});
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan | null>(null);
   const [isTierLimitError, setIsTierLimitError] = useState(false);
 
   useEffect(() => {
@@ -66,13 +65,7 @@ export default function SummaryPage() {
     } catch (err) {
       if (err instanceof SessionApiError && err.status === 403) {
         setIsTierLimitError(true);
-        try {
-          const plan = await getCurrentPlan();
-          setCurrentPlan(plan);
-          setError("Session limit reached for your current plan.");
-        } catch {
-          setError("You've reached your session limit. Upgrade your plan to continue.");
-        }
+        setError("You've reached your session limit. Upgrade your plan to continue.");
       } else {
         setError(err instanceof Error ? err.message : "Failed to start session. Please try again.");
       }
@@ -121,13 +114,23 @@ export default function SummaryPage() {
 
         {error && (
           <div className="mt-6">
-            {isTierLimitError && currentPlan ? (
-              <TierLimitError
-                type="session"
-                currentTier={currentPlan.tier}
-                limit={currentPlan.sessions_limit}
-                used={currentPlan.sessions_used}
-              />
+            {isTierLimitError ? (
+              <div className="rounded-xl border border-[#FFA500] bg-[#FFF8E6] p-4">
+                <div className="flex gap-3">
+                  <div className="text-2xl">⚠️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[#8B5A00] mb-2">Session limit reached</h3>
+                    <p className="text-sm text-[#8B5A00] mb-3">{error}</p>
+                    <Link
+                      href="/settings"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#FF8C00] hover:text-[#E67E00] transition"
+                    >
+                      View plans & upgrade
+                      <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
                 {error}

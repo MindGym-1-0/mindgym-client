@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
 import { supabase } from "@/lib/supabase/client";
-import { getCurrentPlan, type CurrentPlan } from "@/lib/subscriptions/api";
-import { Bell, Shield, Crown, Check, X, Calendar, Zap } from "lucide-react";
+import { Bell, Shield, Crown, Check, X } from "lucide-react";
 
 export default function SettingsPage() {
   const name = useUserName();
@@ -23,22 +22,10 @@ export default function SettingsPage() {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // Subscription state
-  const [currentPlan, setCurrentPlan] = useState<CurrentPlan | null>(null);
-  const [isLoadingPlan, setIsLoadingPlan] = useState(true);
-
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setEmail(data?.user?.email ?? "");
     });
-
-    // Fetch current plan
-    getCurrentPlan()
-      .then(setCurrentPlan)
-      .catch((err) => {
-        console.error("Failed to fetch current plan:", err);
-      })
-      .finally(() => setIsLoadingPlan(false));
   }, []);
 
   function openEditProfile() {
@@ -107,8 +94,6 @@ export default function SettingsPage() {
     pro: { bg: "bg-[#EAF8F4]", text: "text-[#0C6B58]", badge: "bg-[#DDF4EE] text-[#0C6B58]" },
     premium: { bg: "bg-amber-50", text: "text-amber-900", badge: "bg-amber-200 text-amber-800" },
   };
-
-  const tierColor = currentPlan ? tierColors[currentPlan.tier] || tierColors.free : tierColors.free;
 
   const plans = [
     {
@@ -213,89 +198,6 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
-
-      {/* Billing / Current Subscription */}
-      {currentPlan && (
-        <div className={`mt-6 md:mt-8 rounded-3xl border-2 p-5 md:p-6 shadow-sm ${tierColor.bg}`}>
-          <div className="mb-6 flex items-center gap-3">
-            <Zap size={20} className={tierColor.text} />
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Billing & Subscription</p>
-          </div>
-
-          <div className="space-y-6">
-            {/* Current Plan */}
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className={`px-3 py-1 rounded-full text-xs font-semibold ${tierColor.badge}`}>
-                  {currentPlan.is_trial ? "Trial" : `${currentPlan.tier.charAt(0).toUpperCase()}${currentPlan.tier.slice(1)}`}
-                </div>
-              </div>
-              <p className="text-sm text-gray-500">Current plan</p>
-              <h3 className={`text-lg font-semibold mt-1 ${tierColor.text} capitalize`}>
-                {currentPlan.tier} Plan
-              </h3>
-            </div>
-
-            {/* Renewal Date */}
-            <div className="flex items-start gap-4 pt-4 border-t border-gray-200">
-              <Calendar size={18} className="text-gray-400 mt-1" />
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Renews on</p>
-                <p className="text-sm font-medium text-gray-700">
-                  {formatRenewalDate(currentPlan.renewal_date)}
-                </p>
-              </div>
-            </div>
-
-            {/* Usage Quota */}
-            <div className="pt-4 border-t border-gray-200 space-y-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">Monthly quota</p>
-              
-              {/* Sessions */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-700">Sessions</p>
-                  <span className="text-sm font-semibold text-gray-600">
-                    {currentPlan.sessions_used} of {currentPlan.sessions_limit === 999999 ? "∞" : currentPlan.sessions_limit}
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#0C6B58] transition-all"
-                    style={{
-                      width: currentPlan.sessions_limit === 999999 ? "100%" : `${Math.min(100, (currentPlan.sessions_used / currentPlan.sessions_limit) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Interviews */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-gray-700">Interviews tracked</p>
-                  <span className="text-sm font-semibold text-gray-600">
-                    {currentPlan.interviews_used} of {currentPlan.interviews_limit === 999999 ? "∞" : currentPlan.interviews_limit}
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#0C6B58] transition-all"
-                    style={{
-                      width: currentPlan.interviews_limit === 999999 ? "100%" : `${Math.min(100, (currentPlan.interviews_used / currentPlan.interviews_limit) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isLoadingPlan && (
-        <div className="mt-6 md:mt-8 rounded-3xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm">
-          <p className="text-sm text-gray-500">Loading billing information...</p>
-        </div>
-      )}
 
       {/* Plans */}
       <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
