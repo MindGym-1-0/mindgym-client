@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { readSetup, clearSetup, writeActive, SetupDraft } from "@/lib/session/store";
-import { startSession } from "@/lib/session/api";
+import { startSession, SessionApiError } from "@/lib/session/api";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const PREP_LABELS: Record<string, string> = {
   interview_tomorrow: "Interview tomorrow",
@@ -29,6 +31,7 @@ export default function SummaryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [setup, setSetup] = useState<SetupDraft>({});
+  const [isTierLimitError, setIsTierLimitError] = useState(false);
 
   useEffect(() => {
     setSetup(readSetup());
@@ -37,6 +40,7 @@ export default function SummaryPage() {
   const handleBegin = async () => {
     if (isLoading) return;
     setError("");
+    setIsTierLimitError(false);
     setIsLoading(true);
 
     try {
@@ -59,7 +63,12 @@ export default function SummaryPage() {
       clearSetup();
       router.push("/sessions/active");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start session. Please try again.");
+      if (err instanceof SessionApiError && err.status === 403) {
+        setIsTierLimitError(true);
+        setError("You've reached your session limit. Upgrade your plan to continue.");
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to start session. Please try again.");
+      }
       setIsLoading(false);
     }
   };
@@ -104,8 +113,29 @@ export default function SummaryPage() {
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
+          <div className="mt-6">
+            {isTierLimitError ? (
+              <div className="rounded-xl border border-[#FFA500] bg-[#FFF8E6] p-4">
+                <div className="flex gap-3">
+                  <div className="text-2xl">⚠️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[#8B5A00] mb-2">Session limit reached</h3>
+                    <p className="text-sm text-[#8B5A00] mb-3">{error}</p>
+                    <Link
+                      href="/settings"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-[#FF8C00] hover:text-[#E67E00] transition"
+                    >
+                      View plans & upgrade
+                      <ArrowRight size={16} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
           </div>
         )}
 
