@@ -13,7 +13,7 @@ interface FormData {
   searchTimeline: string;
   targetTimeline: string;
   role: string;
-  companyType: string;
+  companyTypes: string[];
   activity: {
     applications: number;
     recruiterCalls: number;
@@ -21,7 +21,7 @@ interface FormData {
     finalRounds: number;
     offers: number;
   };
-  emotionalChallenge: string;
+  emotionalChallenges: string[];
   anxiety: number;
 }
 
@@ -86,7 +86,7 @@ export function Step9Summary({
   const finalRounds =
     formData.activity?.finalRounds || 0;
 
-  const mindsetTitle = gapAnalysis?.mindset_gap ?? mindsetMap[formData.emotionalChallenge] ?? "Confidence gap";
+  const mindsetTitle = gapAnalysis?.mindset_gap ?? mindsetMap[formData.emotionalChallenges[0]] ?? "Confidence gap";
   const mindsetBody = gapAnalysis?.mindset_gap_detail ?? "The silence and rejections are eroding confidence faster than new applications are rebuilding it.";
   const huntingTitle = gapAnalysis?.hunting_gap ?? "Screening → Final round conversion";
   const huntingBody = gapAnalysis?.hunting_gap_detail ?? `${applications} applications → ${interviews} screenings → ${finalRounds} final rounds. The bottleneck is at the final stage, not application volume.`;
@@ -178,9 +178,7 @@ export function Step9Summary({
         </p>
 
         <h3 className="text-3xl font-semibold mb-4">
-          {sessionMap[
-            formData.emotionalChallenge
-          ] ||
+          {sessionMap[formData.emotionalChallenges[0]] ||
             "Envisioning success — breaking the rejection spiral"}
         </h3>
 

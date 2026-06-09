@@ -1,6 +1,6 @@
 interface Props {
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
 }
 
 const OPTIONS = [
@@ -41,10 +41,15 @@ const OPTIONS = [
   },
 ];
 
-export function Step5CompanyType({
-  value,
-  onChange,
-}: Props) {
+export function Step5CompanyType({ value, onChange }: Props) {
+  const toggle = (option: string) => {
+    if (value.includes(option)) {
+      onChange(value.filter((v) => v !== option));
+    } else {
+      onChange([...value, option]);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
@@ -61,12 +66,12 @@ export function Step5CompanyType({
 
       <div className="space-y-3">
         {OPTIONS.map((option) => {
-          const selected = value === option.value;
+          const selected = value.includes(option.value);
 
           return (
             <button
               key={option.value}
-              onClick={() => onChange(option.value)}
+              onClick={() => toggle(option.value)}
               className={`w-full rounded-2xl border px-5 py-4 text-left transition-all ${
                 selected
                   ? "bg-teal-50 border-teal-600"
@@ -91,14 +96,16 @@ export function Step5CompanyType({
                 </div>
 
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                     selected
-                      ? "border-teal-600"
+                      ? "border-teal-600 bg-teal-600"
                       : "border-gray-300"
                   }`}
                 >
                   {selected && (
-                    <div className="w-3 h-3 rounded-full bg-teal-600" />
+                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   )}
                 </div>
               </div>

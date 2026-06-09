@@ -1,6 +1,8 @@
+const MAX_SELECTIONS = 2;
+
 interface Props {
-  value: string;
-  onChange: (value: string) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
 }
 
 const OPTIONS = [
@@ -48,10 +50,17 @@ const OPTIONS = [
   },
 ];
 
-export function Step7EmotionChallenge({
-  value,
-  onChange,
-}: Props) {
+export function Step7EmotionChallenge({ value, onChange }: Props) {
+  const atMax = value.length >= MAX_SELECTIONS;
+
+  const toggle = (option: string) => {
+    if (value.includes(option)) {
+      onChange(value.filter((v) => v !== option));
+    } else if (!atMax) {
+      onChange([...value, option]);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
@@ -60,21 +69,26 @@ export function Step7EmotionChallenge({
         </h2>
 
         <p className="text-sm text-ink-60">
-          This personalises your coaching sessions.
+          This personalises your coaching sessions.{" "}
+          <span className="text-ink-40">Choose up to 2.</span>
         </p>
       </div>
 
       <div className="space-y-3">
         {OPTIONS.map((option) => {
-          const selected = value === option.value;
+          const selected = value.includes(option.value);
+          const disabled = atMax && !selected;
 
           return (
             <button
               key={option.value}
-              onClick={() => onChange(option.value)}
+              onClick={() => toggle(option.value)}
+              disabled={disabled}
               className={`w-full rounded-2xl border px-5 py-4 text-left transition-all ${
                 selected
                   ? "bg-teal-50 border-teal-600"
+                  : disabled
+                  ? "bg-gray-50 border-border opacity-40 cursor-not-allowed"
                   : "bg-white border-border hover:border-teal-300"
               }`}
             >
@@ -96,14 +110,16 @@ export function Step7EmotionChallenge({
                 </div>
 
                 <div
-                  className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
                     selected
-                      ? "border-teal-600"
+                      ? "border-teal-600 bg-teal-600"
                       : "border-gray-300"
                   }`}
                 >
                   {selected && (
-                    <div className="w-3 h-3 rounded-full bg-teal-600" />
+                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   )}
                 </div>
               </div>
