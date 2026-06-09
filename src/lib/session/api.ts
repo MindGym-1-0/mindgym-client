@@ -2,6 +2,16 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
 
+export class SessionApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'SessionApiError';
+    this.status = status;
+  }
+}
+
 export async function getToken(): Promise<string> {
   const supabase = getSupabaseBrowserClient();
 
@@ -60,7 +70,7 @@ export async function startSession(body: StartSessionRequest): Promise<StartSess
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Session start failed (${res.status}): ${text}`);
+    throw new SessionApiError(res.status, `Session start failed (${res.status}): ${text}`);
   }
   return res.json() as Promise<StartSessionResponse>;
 }

@@ -5,6 +5,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CoachApiError, createInterview } from "../../../../../lib/coach/api";
+import { getCurrentPlan, type CurrentPlan } from "@/lib/subscriptions/api";
+import { TierLimitError } from "@/components/TierLimitError";
 
 const EVENT_TYPES = [
   { value: "video_call", label: "Video call" },
@@ -25,6 +27,8 @@ export default function AddInterviewPage() {
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<CurrentPlan | null>(null);
+  const [isTierLimitError, setIsTierLimitError] = useState(false);
 
   async function handleSave() {
     if (!company.trim() || !role.trim() || !interviewDate) {
@@ -33,6 +37,7 @@ export default function AddInterviewPage() {
     }
 
     setError(null);
+    setIsTierLimitError(false);
     setIsSaving(true);
 
     try {
@@ -45,7 +50,16 @@ export default function AddInterviewPage() {
       });
       router.push("/coach/interviews");
     } catch (err) {
-      if (err instanceof CoachApiError && err.status >= 500) {
+      if (err instanceof CoachApiError && err.status === 403) {
+        setIsTierLimitError(true);
+        try {
+          const plan = await getCurrentPlan();
+          setCurrentPlan(plan);
+          setError("Interview limit reached for your current plan.");
+        } catch {
+          setError("You've reached your interview limit. Upgrade your plan to continue.");
+        }
+      } else if (err instanceof CoachApiError && err.status >= 500) {
         setError("Couldn't save the interview right now. Please try again shortly.");
       } else {
         setError("Couldn't save the interview. Please try again.");
@@ -69,11 +83,22 @@ export default function AddInterviewPage() {
 
       <div className="mx-auto max-w-2xl space-y-5">
 
-        {error ? (
-          <div className="rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
-            {error}
+        {error && (
+          <div>
+            {isTierLimitError && currentPlan ? (
+              <TierLimitError
+                type="interview"
+                currentTier={currentPlan.tier}
+                limit={currentPlan.interviews_limit}
+                used={currentPlan.interviews_used}
+              />
+            ) : (
+              <div className="rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
+                {error}
+              </div>
+            )}
           </div>
-        ) : null}
+        )}
 
         {/* Interview details */}
         <div className="rounded-2xl bg-white p-6 shadow-sm space-y-5">

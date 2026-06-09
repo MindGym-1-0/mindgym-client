@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { readSetup, clearSetup, writeActive, SetupDraft } from "@/lib/session/store";
-import { startSession } from "@/lib/session/api";
+import { startSession, SessionApiError } from "@/lib/session/api";
+import { getCurrentPlan, type CurrentPlan } from "@/lib/subscriptions/api";
+import { TierLimitError } from "@/components/TierLimitError";
 
 const PREP_LABELS: Record<string, string> = {
   interview_tomorrow: "Interview tomorrow",
@@ -29,6 +31,8 @@ export default function SummaryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [setup, setSetup] = useState<SetupDraft>({});
+  const [currentPlan, setCurrentPlan] = useState<CurrentPlan | null>(null);
+  const [isTierLimitError, setIsTierLimitError] = useState(false);
 
   useEffect(() => {
     setSetup(readSetup());
@@ -37,6 +41,7 @@ export default function SummaryPage() {
   const handleBegin = async () => {
     if (isLoading) return;
     setError("");
+    setIsTierLimitError(false);
     setIsLoading(true);
 
     try {
@@ -59,7 +64,18 @@ export default function SummaryPage() {
       clearSetup();
       router.push("/sessions/active");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start session. Please try again.");
+      if (err instanceof SessionApiError && err.status === 403) {
+        setIsTierLimitError(true);
+        try {
+          const plan = await getCurrentPlan();
+          setCurrentPlan(plan);
+          setError("Session limit reached for your current plan.");
+        } catch {
+          setError("You've reached your session limit. Upgrade your plan to continue.");
+        }
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to start session. Please try again.");
+      }
       setIsLoading(false);
     }
   };
@@ -104,8 +120,19 @@ export default function SummaryPage() {
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
+          <div className="mt-6">
+            {isTierLimitError && currentPlan ? (
+              <TierLimitError
+                type="session"
+                currentTier={currentPlan.tier}
+                limit={currentPlan.sessions_limit}
+                used={currentPlan.sessions_used}
+              />
+            ) : (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error}
+              </div>
+            )}
           </div>
         )}
 
