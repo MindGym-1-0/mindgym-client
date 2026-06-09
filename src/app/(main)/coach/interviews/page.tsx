@@ -175,7 +175,7 @@ export default function InterviewsPage() {
                   onClick={() => router.push(`/coach/interview-checkin?interview_id=${interview.id}`)}
                   className="rounded-lg border px-4 py-2 text-sm"
                 >
-                  {"Recovery session ->"}
+                  {"Update outcome ->"}
                 </button>
               </div>
             ))}
