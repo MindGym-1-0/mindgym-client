@@ -8,7 +8,7 @@ export async function getToken(): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
   if (session?.access_token) return session.access_token;
 
-  // Session not in memory (e.g. after full-page reload) — try refreshing via cookie
+  // Session not in memory (e.g. after full-page reload) - try refreshing via cookie
   const { data: { session: refreshed } } = await supabase.auth.refreshSession();
   if (refreshed?.access_token) return refreshed.access_token;
 
@@ -21,6 +21,7 @@ export interface StartSessionRequest {
   desired_feeling: string[];
   time_available: string;
   anxiety_level_before: number;
+  interview_id?: string;
   company?: string;
   role?: string;
   feeling_note?: string;
