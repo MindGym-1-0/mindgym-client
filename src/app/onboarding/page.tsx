@@ -66,7 +66,7 @@ export default function OnboardingWizard() {
     searchTimeline: "",
     targetTimeline: "",
     role: "",
-    companyType: "",
+    companyTypes: [] as string[],
     activity: {
       applications: 0,
       recruiterCalls: 0,
@@ -74,7 +74,7 @@ export default function OnboardingWizard() {
       finalRounds: 0,
       offers: 0,
     },
-    emotionalChallenge: "",
+    emotionalChallenges: [] as string[],
     anxiety: 5,
   });
 
@@ -94,11 +94,11 @@ export default function OnboardingWizard() {
       case 4:
         return formData.role.trim() !== "";
       case 5:
-        return formData.companyType !== "";
+        return formData.companyTypes.length > 0;
       case 6:
         return true;
       case 7:
-        return formData.emotionalChallenge !== "";
+        return formData.emotionalChallenges.length > 0;
       case 8:
         return formData.anxiety > 0;
       default:
@@ -153,15 +153,14 @@ export default function OnboardingWizard() {
             TIMELINE_MAP[formData.targetTimeline] ?? formData.targetTimeline,
           target_role_category: ROLE_MAP[formData.role] ?? "not_sure",
           target_role_note: formData.role,
-          company_types: [COMPANY_MAP[formData.companyType]],
+          company_types: formData.companyTypes.map((c) => COMPANY_MAP[c] ?? c),
           applications_sent_min: formData.activity.applications,
           applications_sent_max: formData.activity.applications,
           recruiter_contacts: formData.activity.recruiterCalls,
           first_round_interviews: formData.activity.interviews,
           final_round_interviews: formData.activity.finalRounds,
           offers: formData.activity.offers,
-          emotional_challenge:
-            CHALLENGE_MAP[formData.emotionalChallenge] ?? formData.emotionalChallenge,
+          emotional_challenge: formData.emotionalChallenges.map((c) => CHALLENGE_MAP[c] ?? c),
           baseline_anxiety: formData.anxiety,
         }),
       });
@@ -216,7 +215,7 @@ export default function OnboardingWizard() {
 
           target_role_note: formData.role,
 
-          company_types: [COMPANY_MAP[formData.companyType]],
+          company_types: formData.companyTypes.map((c) => COMPANY_MAP[c] ?? c),
 
           applications_sent_min: formData.activity.applications,
           applications_sent_max: formData.activity.applications,
@@ -225,8 +224,7 @@ export default function OnboardingWizard() {
           final_round_interviews: formData.activity.finalRounds,
           offers: formData.activity.offers,
 
-          emotional_challenge:
-            CHALLENGE_MAP[formData.emotionalChallenge] ?? formData.emotionalChallenge,
+          emotional_challenge: formData.emotionalChallenges.map((c) => CHALLENGE_MAP[c] ?? c),
 
           baseline_anxiety: formData.anxiety,
         }),
@@ -300,9 +298,9 @@ export default function OnboardingWizard() {
       case 5:
         return (
           <Step5CompanyType
-            value={formData.companyType}
+            value={formData.companyTypes}
             onChange={(value) =>
-              setFormData({ ...formData, companyType: value })
+              setFormData({ ...formData, companyTypes: value })
             }
           />
         );
@@ -318,9 +316,9 @@ export default function OnboardingWizard() {
       case 7:
         return (
           <Step7EmotionChallenge
-            value={formData.emotionalChallenge}
+            value={formData.emotionalChallenges}
             onChange={(value) =>
-              setFormData({ ...formData, emotionalChallenge: value })
+              setFormData({ ...formData, emotionalChallenges: value })
             }
           />
         );
