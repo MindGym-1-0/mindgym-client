@@ -43,7 +43,7 @@ export default function RejectionRecoveryPage() {
         </p>
 
         <h1 className="text-5xl font-bold text-[#9B1C1C] mb-4">
-          You didn&apos;t get the role at Google.
+          This rejection does not define you.
         </h1>
 
         <p className="text-[#7F1D1D] text-lg">
