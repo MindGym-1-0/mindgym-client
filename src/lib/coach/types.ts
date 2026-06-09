@@ -75,3 +75,12 @@ export type InterviewChecklistResponse = {
 export type ChecklistRequest = {
   interview_id: string;
 };
+
+export type InterviewOutcome = "offer" | "no_offer" | "awaiting" | "pending";
+
+export type InterviewOutcomeResponse = {
+  id: string;
+  outcome: InterviewOutcome;
+  check_in_attempts: number;
+  next_check_in_at: string | null;
+};

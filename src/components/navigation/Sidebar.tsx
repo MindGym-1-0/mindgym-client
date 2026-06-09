@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -50,13 +50,7 @@ const navItems = [
         notification: true,
         children: [
           { label: "Coach", href: "/coach" },
-          { label: "Coach Prep", href: "/coach/prep" },
           { label: "My Interviews", href: "/coach/interviews" },
-          { label: "Interview Checklist", href: "/coach/checklist" },
-          {
-            label: "Post Interview Check-in",
-            href: "/coach/interview-checkin",
-          },
         ],
       },
       {

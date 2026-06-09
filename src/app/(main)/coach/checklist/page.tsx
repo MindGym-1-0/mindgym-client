@@ -7,6 +7,7 @@ import type { InterviewChecklistResponse } from "../../../../lib/coach/types";
 export default function ChecklistPage() {
   const [interviewId, setInterviewId] = useState<string | null>(null);
   const [checklist, setChecklist] = useState<InterviewChecklistResponse | null>(null);
+  const [checkedById, setCheckedById] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +33,12 @@ export default function ChecklistPage() {
         const data = await getInterviewChecklist(interviewId);
         if (!isActive) return;
         setChecklist(data);
+        setCheckedById(
+          [...data.mental_prep, ...data.logistics].reduce<Record<string, boolean>>((next, item) => {
+            next[item.id] = item.checked;
+            return next;
+          }, {})
+        );
       } catch (err) {
         if (!isActive) return;
         if (err instanceof CoachApiError && err.status === 404) {
@@ -52,9 +59,27 @@ export default function ChecklistPage() {
   }, [interviewId]);
 
   const readiness = checklist?.overall_readiness;
-  const progressPct = readiness
-    ? Math.round((readiness.score / readiness.total_items) * 100)
-    : 0;
+  const totalItems = checklist ? checklist.mental_prep.length + checklist.logistics.length : 0;
+  const completedItems = totalItems
+    ? Object.values(checkedById).filter(Boolean).length
+    : readiness?.score ?? 0;
+  const progressPct = totalItems
+    ? Math.round((completedItems / totalItems) * 100)
+    : readiness
+      ? Math.round((readiness.score / readiness.total_items) * 100)
+      : 0;
+
+  function isItemChecked(id: string, initialChecked: boolean) {
+    return checkedById[id] ?? initialChecked;
+  }
+
+  function toggleItem(id: string) {
+    // TODO: persist checklist completion when backend endpoint exists.
+    setCheckedById((current) => ({
+      ...current,
+      [id]: !current[id],
+    }));
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] p-8">
@@ -83,7 +108,7 @@ export default function ChecklistPage() {
           <div className="flex items-center justify-between">
             <p className="font-medium">Overall readiness</p>
             <p className="font-semibold text-[#0D7C66]">
-              {readiness.score}/{readiness.total_items} Complete
+              {completedItems}/{totalItems || readiness.total_items} Complete
             </p>
           </div>
           <div className="mt-4 h-3 w-full rounded-full bg-gray-200">
@@ -100,22 +125,33 @@ export default function ChecklistPage() {
         <div className="rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="mb-4 font-semibold">Mental & Emotional Prep</h2>
           <div className="space-y-4">
-            {(checklist?.mental_prep ?? []).map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <div
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm ${
-                    item.checked
-                      ? "bg-[#0D7C66] text-white"
-                      : "border-2 border-gray-300 bg-white"
-                  }`}
+            {(checklist?.mental_prep ?? []).map((item) => {
+              const checked = isItemChecked(item.id, item.checked);
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={checked}
+                  onClick={() => toggleItem(item.id)}
+                  className="flex w-full items-center gap-3 text-left"
                 >
-                  {item.checked ? "✓" : ""}
-                </div>
-                <p className={item.checked ? "text-gray-700" : "text-gray-400"}>
-                  {item.label}
-                </p>
-              </div>
-            ))}
+                  <div
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm ${
+                      checked
+                        ? "bg-[#0D7C66] text-white"
+                        : "border-2 border-gray-300 bg-white"
+                    }`}
+                  >
+                    {checked ? "✓" : ""}
+                  </div>
+                  <p className={checked ? "text-gray-700" : "text-gray-400"}>
+                    {item.label}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -123,22 +159,33 @@ export default function ChecklistPage() {
           <div className="rounded-2xl bg-white p-6 shadow-sm">
             <h2 className="mb-4 font-semibold">Logistics</h2>
             <div className="space-y-4">
-              {(checklist?.logistics ?? []).map((item) => (
-                <div key={item.id} className="flex items-center gap-3">
-                  <div
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm ${
-                      item.checked
-                        ? "bg-[#0D7C66] text-white"
-                        : "border-2 border-gray-300 bg-white"
-                    }`}
+              {(checklist?.logistics ?? []).map((item) => {
+                const checked = isItemChecked(item.id, item.checked);
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={checked}
+                    onClick={() => toggleItem(item.id)}
+                    className="flex w-full items-center gap-3 text-left"
                   >
-                    {item.checked ? "✓" : ""}
-                  </div>
-                  <p className={item.checked ? "text-gray-700" : "text-gray-400"}>
-                    {item.label}
-                  </p>
-                </div>
-              ))}
+                    <div
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm ${
+                        checked
+                          ? "bg-[#0D7C66] text-white"
+                          : "border-2 border-gray-300 bg-white"
+                      }`}
+                    >
+                      {checked ? "✓" : ""}
+                    </div>
+                    <p className={checked ? "text-gray-700" : "text-gray-400"}>
+                      {item.label}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
