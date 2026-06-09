@@ -80,21 +80,6 @@ export default function SettingsPage() {
     );
   }
 
-  const formatRenewalDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-    } catch {
-      return dateString;
-    }
-  };
-
-  const tierColors: Record<string, { bg: string; text: string; badge: string }> = {
-    free: { bg: "bg-gray-50", text: "text-gray-900", badge: "bg-gray-200 text-gray-800" },
-    pro: { bg: "bg-[#EAF8F4]", text: "text-[#0C6B58]", badge: "bg-[#DDF4EE] text-[#0C6B58]" },
-    premium: { bg: "bg-amber-50", text: "text-amber-900", badge: "bg-amber-200 text-amber-800" },
-  };
-
   const plans = [
     {
       name: "Free",
