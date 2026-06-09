@@ -29,9 +29,9 @@ export default function SupportBanner() {
           </div>
         </div>
 
-        {/* Buttons */}
+      {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-          
+          <a
             href="mailto:clairehzhu@gmail.com"
             className="w-full sm:w-auto rounded-xl bg-[#0C6B58] px-6 py-3 text-sm font-medium text-white transition hover:opacity-90 text-center"
           >
