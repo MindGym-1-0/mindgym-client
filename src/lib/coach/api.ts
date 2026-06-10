@@ -277,6 +277,49 @@ function assertInterviewOutcomeResponse(payload: unknown): asserts payload is In
   }
 }
 
+function normalizeInterviewOutcomeResponse(
+  payload: unknown,
+  interviewId: string,
+  outcome: InterviewOutcome
+): InterviewOutcomeResponse {
+  if (payload === null) {
+    return {
+      id: interviewId,
+      outcome,
+      check_in_attempts: 0,
+      next_check_in_at: null,
+    };
+  }
+
+  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    const candidate = payload as Record<string, unknown>;
+    const nextOutcome = candidate.outcome;
+
+    if (typeof candidate.id === "string" && typeof nextOutcome === "string") {
+      const allowedOutcomes: InterviewOutcome[] = ["offer", "no_offer", "awaiting", "pending"];
+
+      if (allowedOutcomes.includes(nextOutcome as InterviewOutcome)) {
+        return {
+          id: candidate.id,
+          outcome: nextOutcome as InterviewOutcome,
+          check_in_attempts:
+            typeof candidate.check_in_attempts === "number" && !Number.isNaN(candidate.check_in_attempts)
+              ? candidate.check_in_attempts
+              : 0,
+          next_check_in_at: typeof candidate.next_check_in_at === "string" ? candidate.next_check_in_at : null,
+        };
+      }
+    }
+  }
+
+  return {
+    id: interviewId,
+    outcome,
+    check_in_attempts: 0,
+    next_check_in_at: null,
+  };
+}
+
 export async function updateInterviewOutcome(
   interviewId: string,
   outcome: InterviewOutcome
@@ -294,7 +337,25 @@ export async function updateInterviewOutcome(
 
   if (!response.ok) await throwCoachApiError(response);
 
+  if (response.status === 204) {
+    return {
+      id: interviewId,
+      outcome,
+      check_in_attempts: 0,
+      next_check_in_at: null,
+    };
+  }
+
   const payload = await parseJsonSafely(response);
-  assertInterviewOutcomeResponse(payload);
-  return payload;
+
+  if (payload !== null) {
+    try {
+      assertInterviewOutcomeResponse(payload);
+      return payload;
+    } catch {
+      return normalizeInterviewOutcomeResponse(payload, interviewId, outcome);
+    }
+  }
+
+  return normalizeInterviewOutcomeResponse(payload, interviewId, outcome);
 }
