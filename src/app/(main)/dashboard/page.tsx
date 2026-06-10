@@ -60,7 +60,6 @@ function formatInterviewTime(dateStr: string): string {
 function MoodTracker() {
   const moods = ["😊", "😄", "😐", "😟", "😞"];
   const [selected, setSelected] = useState<number | null>(null);
-  const router = useRouter();
 
   const handleLogout = async () => {
     try {
