@@ -30,23 +30,6 @@ type SessionResult = {
   recommended_actions: RecommendedAction[];
 };
 
-// TODO: remove once UI is aligned — shows result screen directly
-const PREVIEW_RESULT: SessionResult = {
-  session_id: "preview",
-  preparation_for: "rejection_recovery",
-  desired_feeling: ["focused", "grounded", "calm"],
-  time_available: "10 min",
-  anxiety_level_before: 7,
-  anxiety_level_after: 4,
-  anxiety_level_delta: -3,
-  completed_at: new Date().toISOString(),
-  session_number: 1,
-  recommended_actions: [
-    { title: "Name the narrative", body: "Write one sentence about what this rejection taught you — not what it says about you.", timing: "Today" },
-    { title: "Return to your evidence", body: "Re-read your last 3 wins — applications, interviews, kind feedback. They're still true.", timing: "Ongoing" },
-    { title: "Reach out to one person", body: "Send a message to someone in your network — not to ask for a job, just to stay warm.", timing: "Tomorrow" },
-  ],
-};
 
 function formatCompletedAt(iso: string): string {
   const d = new Date(iso);
@@ -101,11 +84,13 @@ function ResultView({
   onDashboard,
   onReplay,
   isReplaying,
+  replayError,
 }: {
   result: SessionResult;
   onDashboard: () => void;
   onReplay: () => void;
   isReplaying: boolean;
+  replayError?: string;
 }) {
   const {
     preparation_for,
@@ -125,7 +110,7 @@ function ResultView({
         {/* Header */}
         <div className="mb-2">
           <h1 className="text-xl font-semibold text-[#171412] leading-snug">
-            {sessionTitle(preparation_for)}
+            {sessionTitle(preparation_for, session_number)}
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-3">
             <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
@@ -227,7 +212,7 @@ function ResultView({
             </span>
           </div>
           <p className="text-white text-sm leading-relaxed">
-            {closingMessage(before, after, session_number)}
+            {closingMessage(before, after, session_number, preparation_for)}
           </p>
           <div className="border-t border-[#2C2925] mt-5 pt-4">
             <p className="text-[#6B6864] text-xs leading-relaxed">
@@ -241,7 +226,10 @@ function ResultView({
         </div>
 
         {/* Action buttons */}
-        <div className="flex justify-center gap-3 pt-2 pb-8">
+        <div className="flex flex-col items-center gap-3 pt-2 pb-8">
+          {replayError && (
+            <p className="text-xs text-red-500">{replayError}</p>
+          )}
           <div className="flex gap-3">
             <button
               onClick={onDashboard}
@@ -315,6 +303,7 @@ export default function FeedbackPage() {
       router.push("/sessions/active");
     } catch {
       setIsReplaying(false);
+      setError("Couldn't load the session. Try again.");
     }
   };
 
@@ -325,6 +314,7 @@ export default function FeedbackPage() {
         onDashboard={() => router.push("/dashboard")}
         onReplay={handleReplay}
         isReplaying={isReplaying}
+        replayError={error}
       />
     );
   }
