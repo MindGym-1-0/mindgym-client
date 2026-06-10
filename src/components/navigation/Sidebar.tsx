@@ -59,20 +59,12 @@ const navItems = [
         icon: BookOpen,
         children: [
           {
-            label: "Session History",
-            href: "/sessions/history",
-          },
-          {
-            label: "Setup Flow",
+            label: "Start meditation session",
             href: "/sessions/setup/emotions",
           },
           {
-            label: "Active Session",
-            href: "/sessions/active",
-          },
-          {
-            label: "Feedback",
-            href: "/sessions/feedback",
+            label: "Session History",
+            href: "/sessions/history",
           },
         ],
       },
