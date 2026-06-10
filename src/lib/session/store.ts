@@ -6,6 +6,7 @@ export interface SetupDraft {
   feeling_note?: string;
   anxiety_level_before?: number;
   preparation_for?: string;
+  interview_id?: string;
   company?: string;
   role?: string;
   desired_feeling?: ('calm' | 'grounded' | 'confident' | 'focused' | 'clear_minded' | 'composed')[];

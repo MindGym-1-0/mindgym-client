@@ -1,4 +1,8 @@
-// src/app/(main)/coach/interview-checkin/rejection-recovery/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { clearSetup, writeSetup } from "@/lib/session/store";
 
 const emotions = [
   "Angry and frustrated",
@@ -9,6 +13,28 @@ const emotions = [
 ];
 
 export default function RejectionRecoveryPage() {
+  const router = useRouter();
+  const [interviewId, setInterviewId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("interview_id")?.trim() || null;
+    setInterviewId(id);
+  }, []);
+
+  function handleBeginRecoverySession() {
+    if (!interviewId) return;
+
+    clearSetup();
+    writeSetup({
+      preparation_for: "rejection_recovery",
+      interview_id: interviewId,
+    });
+    router.push("/sessions/setup/emotions");
+  }
+
+  const isMissingInterview = !interviewId;
+
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div className="bg-[#FFECEC] border border-[#F4B5B5] rounded-3xl p-8">
@@ -17,13 +43,19 @@ export default function RejectionRecoveryPage() {
         </p>
 
         <h1 className="text-5xl font-bold text-[#9B1C1C] mb-4">
-          You didn’t get the role at Google.
+          This rejection does not define you.
         </h1>
 
         <p className="text-[#7F1D1D] text-lg">
-          That stings. But this doesn’t define what comes next.
+          That stings. But this doesn&apos;t define what comes next.
         </p>
       </div>
+
+      {isMissingInterview ? (
+        <div className="rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
+          No interview selected. Open recovery from an interview to start a guided recovery session.
+        </div>
+      ) : null}
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl p-6">
@@ -35,6 +67,7 @@ export default function RejectionRecoveryPage() {
             {emotions.map((emotion, index) => (
               <button
                 key={index}
+                type="button"
                 className="w-full border rounded-2xl py-4 px-5 text-left hover:bg-[#FFF5F5]"
               >
                 {emotion}
@@ -62,7 +95,12 @@ export default function RejectionRecoveryPage() {
               “Every person who has a job they love was rejected before they found it.”
             </p>
 
-            <button className="bg-[#0D8B7B] px-6 py-3 rounded-xl">
+            <button
+              type="button"
+              disabled={isMissingInterview}
+              onClick={handleBeginRecoverySession}
+              className="bg-[#0D8B7B] px-6 py-3 rounded-xl disabled:cursor-not-allowed disabled:opacity-60"
+            >
               Begin recovery session →
             </button>
           </div>
@@ -71,7 +109,7 @@ export default function RejectionRecoveryPage() {
 
       <div className="bg-[#DDF5F1] rounded-3xl p-8">
         <h2 className="text-2xl font-bold mb-5">
-          Maya’s 3-step recovery
+          Maya&apos;s 3-step recovery
         </h2>
 
         <ul className="space-y-3 text-[#374151]">

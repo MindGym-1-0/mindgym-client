@@ -29,6 +29,7 @@ export default function SummaryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [setup, setSetup] = useState<SetupDraft>({});
+  const isRejectionRecovery = setup.preparation_for === "rejection_recovery";
 
   useEffect(() => {
     setSetup(readSetup());
@@ -37,6 +38,12 @@ export default function SummaryPage() {
   const handleBegin = async () => {
     if (isLoading) return;
     setError("");
+
+    if (setup.preparation_for === "rejection_recovery" && !setup.interview_id) {
+      setError("We couldn't start your recovery session because no interview was selected.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -47,8 +54,9 @@ export default function SummaryPage() {
         desired_feeling: setup.desired_feeling!,
         time_available: setup.time_available!,
         anxiety_level_before: setup.anxiety_level_before!,
-        company: setup.company,
-        role: setup.role,
+        interview_id: setup.interview_id,
+        company: isRejectionRecovery ? undefined : setup.company,
+        role: isRejectionRecovery ? undefined : setup.role,
       });
 
       writeActive({
@@ -80,7 +88,7 @@ export default function SummaryPage() {
           <p className="text-gray-500 mb-4">Your session</p>
           <p className="text-2xl leading-relaxed">
             You&apos;re preparing for {prepLabel}
-            {setup.company && setup.role ? ` at ${setup.company} for ${setup.role}` : ""}
+            {!isRejectionRecovery && setup.company && setup.role ? ` at ${setup.company} for ${setup.role}` : ""}
             {desiredLabel ? ` and want to feel ${desiredLabel}.` : "."}
           </p>
 
