@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { readActive, clearActive, readSetup, clearSetup } from "@/lib/session/store";
-import { completeSession, getSessionDetail } from "@/lib/session/api";
+import { completeSession, getSessionDetail, type RecommendedAction } from "@/lib/session/api";
 import { writeActive } from "@/lib/session/store";
 import {
   sessionTitle,
@@ -13,7 +13,6 @@ import {
   anxietyLabel,
   feelingChipLabel,
   feelingReflection,
-  recommendedActions,
   closingMessage,
   nextSessionLabel,
 } from "@/lib/session/session_copy";
@@ -28,6 +27,7 @@ type SessionResult = {
   anxiety_level_delta: number;
   completed_at: string;
   session_number: number;
+  recommended_actions: RecommendedAction[];
 };
 
 // TODO: remove once UI is aligned — shows result screen directly
@@ -41,6 +41,11 @@ const PREVIEW_RESULT: SessionResult = {
   anxiety_level_delta: -3,
   completed_at: new Date().toISOString(),
   session_number: 1,
+  recommended_actions: [
+    { title: "Name the narrative", body: "Write one sentence about what this rejection taught you — not what it says about you.", timing: "Today" },
+    { title: "Return to your evidence", body: "Re-read your last 3 wins — applications, interviews, kind feedback. They're still true.", timing: "Ongoing" },
+    { title: "Reach out to one person", body: "Send a message to someone in your network — not to ask for a job, just to stay warm.", timing: "Tomorrow" },
+  ],
 };
 
 function formatCompletedAt(iso: string): string {
@@ -110,9 +115,8 @@ function ResultView({
     anxiety_level_after: after,
     completed_at,
     session_number,
+    recommended_actions: actions,
   } = result;
-
-  const actions = recommendedActions(preparation_for);
 
   return (
     <div className="min-h-screen bg-[#F6F6F4]">
@@ -289,7 +293,8 @@ export default function FeedbackPage() {
         anxiety_level_after: res.anxiety_level_after,
         anxiety_level_delta: res.anxiety_level_delta,
         completed_at: new Date().toISOString(),
-        session_number: 1, // TODO: backend to return session_number
+        session_number: res.session_number,
+        recommended_actions: res.recommended_actions,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save session.");
