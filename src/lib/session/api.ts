@@ -41,11 +41,19 @@ export interface StartSessionResponse {
   mode: string;
 }
 
+export interface RecommendedAction {
+  title: string;
+  body: string;
+  timing: string;
+}
+
 export interface CompleteSessionResponse {
   session_id: string;
   anxiety_level_before: number;
   anxiety_level_after: number;
   anxiety_level_delta: number;
+  session_number: number;
+  recommended_actions: RecommendedAction[];
   message: string;
 }
 
