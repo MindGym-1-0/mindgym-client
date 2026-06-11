@@ -60,26 +60,6 @@ function formatInterviewTime(dateStr: string): string {
 function MoodTracker() {
   const moods = ["😊", "😄", "😐", "😟", "😞"];
   const [selected, setSelected] = useState<number | null>(null);
-
-  const handleLogout = async () => {
-    try {
-      const supabase = getSupabaseBrowserClient();
-
-      await supabase.auth.signOut();
-
-      // Clear backend auth cookies used by middleware
-      document.cookie =
-        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-      localStorage.clear();
-      sessionStorage.clear();
-
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
   };
 
   return (
