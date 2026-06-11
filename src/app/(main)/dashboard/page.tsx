@@ -59,10 +59,20 @@ function formatInterviewTime(dateStr: string): string {
 /** Mood emoji row in the top-right */
 const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
 
+function MoodTracker({
+  selected,
+  onSelect,
+}: {
+  selected: number | null;
+  onSelect: (index: number) => void;
+}) {
   return (
     <div className="flex items-center gap-2">
-      <span className="mr-1 text-xs text-gray-500">Mood today</span>
-      {moods.map((emoji, i) => (
+      <span className="mr-1 text-xs text-gray-500">
+        Mood today
+      </span>
+
+      {MOODS.map((emoji, i) => (
         <button
           key={i}
           onClick={() => onSelect(i)}
@@ -75,6 +85,7 @@ const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
           {emoji}
         </button>
       ))}
+
       <button className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black">
         Log
       </button>
