@@ -1,14 +1,22 @@
 "use client";
 
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
 import { getGreeting } from "@/lib/greeting";
 import { getInterviews, type InterviewItem } from "@/lib/interviews/api";
-import { getSessionHistory, getSessionDetail } from "@/lib/session/api";
-import { writeSetup, clearSetup, writeActive } from "@/lib/session/store";
-import { getInsights, getUserProfile, type InsightsResponse, type UserProfile } from "@/lib/insights/api";
-import { getApplications, toFunnelCounts, type FunnelCounts } from "@/lib/applications/api";
+import { 
+  getSessionHistory, 
+  generateDailyFocus, 
+  completeDailyFocus, 
+  generateWeeklyMission, 
+  completeWeeklyMission,
+  type DailyFocusPlan,
+  type WeeklyMissionPlan 
+} from "@/lib/session/api";
+import { writeSetup, clearSetup } from "@/lib/session/store";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -54,36 +62,55 @@ function formatInterviewTime(dateStr: string): string {
   );
 }
 
+function getDaysAway(dateStr: string): number {
+  const target = new Date(dateStr);
+  const now = new Date();
+  
+  target.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  
+  const diffTime = target.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays < 0 ? 0 : diffDays;
+}
+
 // ─── sub-components ─────────────────────────────────────────────────────────
 
 /** Mood emoji row in the top-right */
-const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
+function MoodTracker() {
+  const moods = ["😊", "😄", "😐", "😟", "😞"];
+  const [selected, setSelected] = useState<number | null>(null);
 
-const MOOD_MESSAGES: { text: string; tone: "positive" | "neutral" | "low" }[] = [
-  { text: "Great to hear — let's keep that momentum going!", tone: "positive" },
-  { text: "Nice! A good mood is your secret weapon.", tone: "positive" },
-  { text: "Feeling neutral is okay — small wins add up.", tone: "neutral" },
-  { text: "Rough day? A quick session can help reset.", tone: "low" },
-  { text: "It's tough right now — Maya's here when you're ready.", tone: "low" },
-];
+  const handleLogout = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
 
-function MoodTracker({
-  selected,
-  onSelect,
-}: {
-  selected: number | null;
-  onSelect: (index: number) => void;
-}) {
+      await supabase.auth.signOut();
+
+      document.cookie =
+        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie =
+        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       <span className="mr-1 text-xs text-gray-500">
         Mood today
       </span>
 
-      {MOODS.map((emoji, i) => (
+      {moods.map((emoji, i) => (
         <button
           key={i}
-          onClick={() => onSelect(i)}
+          onClick={() => setSelected(i)}
           className={`flex h-8 w-8 items-center justify-center rounded-full text-lg transition-all ${
             selected === i
               ? "ring-2 ring-[#0C6B58] bg-[#0C6B58]/10"
@@ -94,8 +121,11 @@ function MoodTracker({
         </button>
       ))}
 
-      <button className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black">
-        Log
+      <button
+        onClick={handleLogout}
+        className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black"
+      >
+        Log Out
       </button>
     </div>
   );
@@ -121,9 +151,11 @@ function ReadinessDots({ value, max = 10 }: { value: number; max?: number }) {
 function ProgressRing({
   done,
   total,
+  label = "done today"
 }: {
   done: number;
   total: number;
+  label?: string;
 }) {
   const r = 44;
   const circ = 2 * Math.PI * r;
@@ -163,7 +195,7 @@ function ProgressRing({
           dominantBaseline="middle"
           style={{ fontSize: 10, fill: "#6B7280" }}
         >
-          done today
+          {label}
         </text>
       </svg>
     </div>
@@ -173,7 +205,6 @@ function ProgressRing({
 /** Mini bar chart for confidence this week */
 function ConfidenceChart() {
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"];
-  // Hard-coded confidence data (backend not available yet)
   const values = [40, 55, 50, 62, 68, 72, 80];
   const max = Math.max(...values);
 
@@ -215,12 +246,13 @@ export default function DashboardPage() {
   const [upcomingInterviews, setUpcomingInterviews] = useState<InterviewItem[]>([]);
   const [sessionCount, setSessionCount] = useState<number | null>(null);
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
-  const [lastSession, setLastSession] = useState<{ id: string; label: string; score: string; delta: string; anxietyBefore: number } | null>(null);
-  const [replayingLastSession, setReplayingLastSession] = useState(false);
-  const [insights, setInsights] = useState<InsightsResponse | null>(null);
-  const [funnelCounts, setFunnelCounts] = useState<FunnelCounts | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [selectedMood, setSelectedMood] = useState<number | null>(null);
+  const [lastSession, setLastSession] = useState<{ label: string; score: string; delta: string } | null>(null);
+
+  // Focus and Mission Management States
+  const [activeTab, setActiveTab] = useState<"today" | "week">("today");
+  const [dailyFocus, setDailyFocus] = useState<DailyFocusPlan | null>(null);
+  const [weeklyMission, setWeeklyMission] = useState<WeeklyMissionPlan | null>(null);
+  const [streakCount, setStreakCount] = useState<number>(1);
 
   function handlePrepareWithMaya(interview: InterviewItem) {
     clearSetup();
@@ -232,26 +264,39 @@ export default function DashboardPage() {
     router.push("/sessions/setup/emotions");
   }
 
-  async function handleReplayLastSession() {
-    if (!lastSession || replayingLastSession) return;
-    setReplayingLastSession(true);
-    try {
-      const detail = await getSessionDetail(lastSession.id);
-      writeActive({
-        session_id: detail.id,
-        script: detail.script,
-        anxiety_level_before: lastSession.anxietyBefore,
-      });
-      router.push("/sessions/active");
-    } catch (err) {
-      console.error("Failed to replay session:", err);
-      setReplayingLastSession(false);
-    }
-  }
-
   function handleStartSession() {
     clearSetup();
     router.push("/sessions/setup/emotions");
+  }
+
+  // Handle checking/unchecking Daily Items
+  async function handleToggleDaily(actionKey: "action_1" | "action_2") {
+    if (!dailyFocus) return;
+    try {
+      const updatedStreak = await completeDailyFocus(actionKey);
+      setStreakCount(updatedStreak.current_streak);
+      setDailyFocus({
+        ...dailyFocus,
+        [`${actionKey}_completed`]: !dailyFocus[`${actionKey}_completed`]
+      });
+    } catch (err) {
+      console.error("Failed to update daily focus task state:", err);
+    }
+  }
+
+  // Handle checking/unchecking Weekly Items
+  async function handleToggleWeekly(missionKey: "action_1" | "action_2" | "action_3") {
+    if (!weeklyMission) return;
+    try {
+      const updateData = await completeWeeklyMission(missionKey);
+      setWeeklyMission({
+        ...weeklyMission,
+        [`${missionKey}_completed`]: !weeklyMission[`${missionKey}_completed`],
+        completion_count: updateData.items_completed
+      });
+    } catch (err) {
+      console.error("Failed to update weekly mission target state:", err);
+    }
   }
 
   useEffect(() => {
@@ -271,76 +316,52 @@ export default function DashboardPage() {
       .then((sessions) => {
         setSessionCount(sessions.length);
         if (sessions.length > 0) {
-          const s = sessions[0];
+          const s = sessions[sessions.length - 1];
+
           setLastSession({
-            id: s.id,
             label:
               s.preparation_for
                 ?.replaceAll("_", " ")
                 .replace(/\b\w/g, (c) => c.toUpperCase()) ??
               "Calm Reset – Pre-Interview",
-            score: `${s.anxiety_level_after ?? s.anxiety_level_before}/10`,
+
+            score: `${
+              s.anxiety_level_after ??
+              s.anxiety_level_before
+            }/10`,
+
             delta:
               s.anxiety_level_delta !== null
-                ? `${s.anxiety_level_delta > 0 ? "+" : ""}${s.anxiety_level_delta}`
+                ? `${s.anxiety_level_delta > 0 ? "+" : ""}${
+                    s.anxiety_level_delta
+                  }`
                 : "—",
-            anxietyBefore: s.anxiety_level_before,
           });
         }
       })
       .catch((err) => console.error("Failed to load session history:", err));
 
-    getInsights()
-      .then((data) => setInsights(data))
-      .catch((err) => console.error("Failed to load insights:", err));
+    // Connect task planners with FastAPI endpoints
+    generateDailyFocus()
+      .then((data) => {
+        setDailyFocus(data);
+        if (data.current_streak !== undefined) setStreakCount(data.current_streak);
+      })
+      .catch((err) => console.error("Error setting daily focus tracker engine:", err));
 
-    getApplications()
-      .then((apps) => setFunnelCounts(toFunnelCounts(apps)))
-      .catch((err) => console.error("Failed to load applications:", err));
-
-    getUserProfile()
-      .then((data) => setUserProfile(data))
-      .catch((err) => console.error("Failed to load user profile:", err));
+    generateWeeklyMission()
+      .then((data) => setWeeklyMission(data))
+      .catch((err) => console.error("Error building weekly target tracking mission:", err));
   }, []);
 
-  // Hard-coded today's focus tasks (Maya data; swap with API when ready)
-  const focusTasks = [
-    {
-      id: 1,
-      title: "Loop how you're feeling this morning",
-      subtitle: "One tap — a line in your journal",
-      tag: null,
-      done: true,
-    },
-    {
-      id: 2,
-      title: "Prepare Your Mental Game",
-      subtitle: "Build clarity and confidence before pressure hits",
-      tag: nextInterview ? `For ${nextInterview.company}` : null,
-      done: false,
-    },
-    {
-      id: 3,
-      title: "Do a 5-minute calm reset before bed",
-      subtitle: "Guided breathing so tomorrow starts grounded",
-      tag: "Daily",
-      done: false,
-    },
-  ];
-  const doneCount = focusTasks.filter((t) => t.done).length;
+  // Compute stats dynamically for current views
+  const totalDailyTasks = dailyFocus ? (dailyFocus.action_2_text ? 2 : 1) : 0;
+  const doneDailyTasks = dailyFocus 
+    ? (dailyFocus.action_1_completed ? 1 : 0) + (dailyFocus.action_2_completed ? 1 : 0)
+    : 0;
 
-  // Use tracked app counts if available, otherwise fall back to onboarding self-reported numbers.
-  const hasTrackedApps = funnelCounts !== null && Object.values(funnelCounts).some((v) => v > 0);
-  const displayFunnel = hasTrackedApps
-    ? funnelCounts!
-    : {
-        applied: userProfile?.applications_sent_max ?? userProfile?.applications_sent_min ?? 0,
-        screening: userProfile?.recruiter_contacts ?? 0,
-        final: userProfile?.first_round_interviews ?? 0,
-        offer: userProfile?.offers ?? 0,
-      };
+  const doneWeeklyTasks = weeklyMission ? weeklyMission.completion_count : 0;
 
-  // Second upcoming interview (for "Next up" card)
   const nextUpInterview = upcomingInterviews[1] ?? null;
 
   return (
@@ -353,37 +374,12 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-1 text-sm text-gray-400">{dateStr}</p>
         </div>
-        <MoodTracker selected={selectedMood} onSelect={setSelectedMood} />
+        <MoodTracker />
       </div>
-
-      {/* ── Mood callout ── */}
-      {selectedMood !== null && (() => {
-        const mood = MOOD_MESSAGES[selectedMood];
-        const isLow = mood.tone === "low";
-        return (
-          <div className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm ${
-            isLow
-              ? "bg-[#FFF7ED] border border-[#FED7AA] text-[#92400E]"
-              : mood.tone === "positive"
-              ? "bg-[#F0FDF9] border border-[#A7F3D0] text-[#065F46]"
-              : "bg-[#F3F4F6] border border-gray-200 text-gray-600"
-          }`}>
-            <span>{MOODS[selectedMood]} {mood.text}</span>
-            {isLow && (
-              <button
-                onClick={handleStartSession}
-                className="ml-4 flex-shrink-0 rounded-lg bg-[#0C6B58] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0a5a49] transition-colors"
-              >
-                Start a session →
-              </button>
-            )}
-          </div>
-        );
-      })()}
 
       {/* ── Interview banner + Next up ── */}
       <div className="grid grid-cols-3 gap-4">
-        {/* Main interview card (2/3 width) */}
+        {/* Main interview card */}
         <div className="col-span-2 rounded-2xl bg-[#0C6B58] p-6 text-white relative overflow-hidden">
           {nextInterview ? (
             <>
@@ -404,10 +400,7 @@ export default function DashboardPage() {
                 >
                   Prepare with Maya →
                 </button>
-                <button
-                  onClick={() => router.push(`/coach/checklist?interview_id=${nextInterview.id}`)}
-                  className="rounded-xl border border-white/30 px-4 py-2 text-sm hover:bg-white/10 transition-colors"
-                >
+                <button className="rounded-xl border border-white/30 px-4 py-2 text-sm hover:bg-white/10 transition-colors">
                   View checklist
                 </button>
               </div>
@@ -429,7 +422,7 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* Readiness score — hard-coded until backend provides it */}
+          {/* Readiness score */}
           {nextInterview && (
             <div className="absolute top-6 right-6 text-right">
               <p className="text-xs opacity-60">Readiness</p>
@@ -440,7 +433,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Next up card (1/3 width) */}
+        {/* Next up card */}
         <div className="rounded-2xl bg-white p-5 shadow-sm flex flex-col justify-between">
           {nextUpInterview ? (
             <>
@@ -453,7 +446,7 @@ export default function DashboardPage() {
                   {nextUpInterview.role} @ {nextUpInterview.company}
                 </h3>
                 <p className="mt-1 text-xs text-gray-400">
-                  0 days away · 0 prep sessions
+                  {getDaysAway(nextUpInterview.interview_date)} days away · {nextUpInterview.prep_sessions_count ?? 0} prep sessions
                 </p>
               </div>
               <button
@@ -465,9 +458,7 @@ export default function DashboardPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center gap-2">
-              <p className="text-sm text-gray-400">
-                {nextInterview ? "That's your only one coming up." : "No interviews scheduled yet."}
-              </p>
+              <p className="text-sm text-gray-400">No other interviews scheduled</p>
               <button
                 onClick={() => router.push("/coach/interviews/add")}
                 className="mt-2 rounded-xl bg-[#F3F4F6] px-4 py-2 text-sm font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors"
@@ -481,7 +472,7 @@ export default function DashboardPage() {
 
       {/* ── Today's focus + progress ring ── */}
       <div className="grid grid-cols-3 gap-4">
-        {/* Focus tasks (2/3) */}
+        {/* Dynamic Focus and Mission panel */}
         <div className="col-span-2 rounded-2xl bg-white p-6 shadow-sm">
           {/* Tabs */}
           <div className="flex items-center justify-between mb-4">
@@ -490,72 +481,187 @@ export default function DashboardPage() {
                 M
               </span>
               <div>
-                <p className="text-sm font-semibold text-[#1A1A1A]">Today's focus</p>
+                <p className="text-sm font-semibold text-[#1A1A1A]">
+                  {activeTab === "today" ? "Today's focus" : "Weekly missions"}
+                </p>
                 <p className="text-xs text-gray-400">from Maya</p>
               </div>
             </div>
             <div className="flex gap-2 text-xs">
-              <button className="px-3 py-1 rounded-full bg-[#1A1A1A] text-white font-medium">
+              <button 
+                onClick={() => setActiveTab("today")}
+                className={`px-3 py-1 rounded-full font-medium transition-colors ${
+                  activeTab === "today" ? "bg-[#1A1A1A] text-white" : "text-gray-500 hover:bg-gray-100"
+                }`}
+              >
                 Today
               </button>
-              <button className="px-3 py-1 rounded-full text-gray-500 hover:bg-gray-100">
+              <button 
+                onClick={() => setActiveTab("week")}
+                className={`px-3 py-1 rounded-full font-medium transition-colors ${
+                  activeTab === "week" ? "bg-[#1A1A1A] text-white" : "text-gray-500 hover:bg-gray-100"
+                }`}
+              >
                 This week
               </button>
             </div>
           </div>
 
-          {/* Maya message */}
-          {nextInterview && (
+          {/* Maya contextual advice message */}
+          {nextInterview && activeTab === "today" && (
             <p className="text-sm text-gray-600 mb-4">
-              Your Google final is tomorrow — today is about staying steady, not cramming. Three small things and you're set.
+              Your Google final is tomorrow — today is about staying steady, not cramming. Focus actions keep you grounded.
             </p>
           )}
 
-          {/* Tasks */}
+          {/* Dynamic Task Elements Rendering */}
           <div className="space-y-3">
-            {focusTasks.map((task) => (
-              <div
-                key={task.id}
-                className={`flex items-start gap-3 rounded-xl p-3 ${
-                  task.done ? "bg-[#F0FDF9]" : "bg-[#F9FAFB]"
-                }`}
-              >
-                <span
-                  className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    task.done
-                      ? "bg-[#0C6B58] border-[#0C6B58]"
-                      : "border-gray-300"
+            {activeTab === "today" ? (
+              dailyFocus ? (
+                <>
+                  {/* Focus Action 1 */}
+                  <div 
+                    onClick={() => handleToggleDaily("action_1")}
+                    className={`flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all hover:opacity-90 ${
+                      dailyFocus.action_1_completed ? "bg-[#F0FDF9]" : "bg-[#F9FAFB]"
+                    }`}
+                  >
+                    <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      dailyFocus.action_1_completed ? "bg-[#0C6B58] border-[#0C6B58]" : "border-gray-300"
+                    }`}>
+                      {dailyFocus.action_1_completed && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                          <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-medium ${dailyFocus.action_1_completed ? "text-gray-400 line-through" : "text-[#1A1A1A]"}`}>
+                        {dailyFocus.action_1_text}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">{dailyFocus.action_1_type}</p>
+                    </div>
+                  </div>
+
+                  {/* Focus Action 2 (Optional) */}
+                  {dailyFocus.action_2_text && (
+                    <div 
+                      onClick={() => handleToggleDaily("action_2")}
+                      className={`flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all hover:opacity-90 ${
+                        dailyFocus.action_2_completed ? "bg-[#F0FDF9]" : "bg-[#F9FAFB]"
+                      }`}
+                    >
+                      <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        dailyFocus.action_2_completed ? "bg-[#0C6B58] border-[#0C6B58]" : "border-gray-300"
+                      }`}>
+                        {dailyFocus.action_2_completed && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${dailyFocus.action_2_completed ? "text-gray-400 line-through" : "text-[#1A1A1A]"}`}>
+                          {dailyFocus.action_2_text}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{dailyFocus.action_2_type ?? "Coaching Plan"}</p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-gray-400 p-4 text-center">Loading daily tracking roadmap...</p>
+              )
+            ) : weeklyMission ? (
+              <>
+                {/* Mission Item 1 */}
+                <div 
+                  onClick={() => handleToggleWeekly("action_1")}
+                  className={`flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all hover:opacity-90 ${
+                    weeklyMission.action_1_completed ? "bg-[#F0FDF9]" : "bg-[#F9FAFB]"
                   }`}
                 >
-                  {task.done && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${task.done ? "text-gray-400 line-through" : "text-[#1A1A1A]"}`}>
-                    {task.title}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">{task.subtitle}</p>
-                </div>
-                {task.tag && (
-                  <span className="text-xs text-[#0C6B58] bg-[#D1FAE5] rounded-full px-2 py-0.5 flex-shrink-0">
-                    {task.tag}
+                  <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    weeklyMission.action_1_completed ? "bg-[#0C6B58] border-[#0C6B58]" : "border-gray-300"
+                  }`}>
+                    {weeklyMission.action_1_completed && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
                   </span>
-                )}
-              </div>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${weeklyMission.action_1_completed ? "text-gray-400 line-through" : "text-[#1A1A1A]"}`}>
+                      {weeklyMission.action_1}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mission Item 2 */}
+                <div 
+                  onClick={() => handleToggleWeekly("action_2")}
+                  className={`flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all hover:opacity-90 ${
+                    weeklyMission.action_2_completed ? "bg-[#F0FDF9]" : "bg-[#F9FAFB]"
+                  }`}
+                >
+                  <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    weeklyMission.action_2_completed ? "bg-[#0C6B58] border-[#0C6B58]" : "border-gray-300"
+                  }`}>
+                    {weeklyMission.action_2_completed && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${weeklyMission.action_2_completed ? "text-gray-400 line-through" : "text-[#1A1A1A]"}`}>
+                      {weeklyMission.action_2}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Mission Item 3 */}
+                <div 
+                  onClick={() => handleToggleWeekly("action_3")}
+                  className={`flex items-start gap-3 rounded-xl p-3 cursor-pointer transition-all hover:opacity-90 ${
+                    weeklyMission.action_3_completed ? "bg-[#F0FDF9]" : "bg-[#F9FAFB]"
+                  }`}
+                >
+                  <span className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                    weeklyMission.action_3_completed ? "bg-[#0C6B58] border-[#0C6B58]" : "border-gray-300"
+                  }`}>
+                    {weeklyMission.action_3_completed && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${weeklyMission.action_3_completed ? "text-gray-400 line-through" : "text-[#1A1A1A]"}`}>
+                      {weeklyMission.action_3}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-gray-400 p-4 text-center">Assembling target weekly dashboard mission logs...</p>
+            )}
           </div>
 
-          <p className="mt-3 text-xs text-gray-400">↻ Resets each morning</p>
+          <p className="mt-3 text-xs text-gray-400">↻ Resets at start of period</p>
         </div>
 
-        {/* Progress ring (1/3) */}
+        {/* Dynamic Responsive Progress ring */}
         <div className="rounded-2xl bg-[#F9FAFB] p-6 shadow-sm flex flex-col items-center justify-between">
-          <ProgressRing done={doneCount} total={focusTasks.length} />
+          {activeTab === "today" ? (
+            <ProgressRing done={doneDailyTasks} total={totalDailyTasks} label="done today" />
+          ) : (
+            <ProgressRing done={doneWeeklyTasks} total={3} label="completed" />
+          )}
           <p className="mt-3 text-xs text-center text-gray-500">
-            Finish all three to keep your streak alive.
+            {activeTab === "today" 
+              ? "Finish all daily items to keep your momentum streak burning." 
+              : "Hit your milestones to clear your main weekly funnel targets."}
           </p>
           <button
             onClick={() => router.push("/sessions")}
@@ -574,12 +680,11 @@ export default function DashboardPage() {
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-sm">
           <h3 className="text-4xl font-bold text-[#F59E0B] flex items-center gap-1">
-            1 <span className="text-xl">🔥</span>
+            {streakCount} <span className="text-xl">🔥</span>
           </h3>
           <p className="mt-1 text-xs text-gray-500">Day streak</p>
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-sm">
-          {/* Confidence hard-coded — backend not wired yet */}
           <h3 className="text-4xl font-bold text-[#0C6B58]">12%</h3>
           <p className="mt-1 text-xs text-gray-500">Confidence lift</p>
         </div>
@@ -593,11 +698,9 @@ export default function DashboardPage() {
       <div className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-[#1A1A1A]">What's getting in your way</h2>
-          {(userProfile?.mindset_gap || userProfile?.hunting_gap) && (
-            <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
-              {[userProfile.mindset_gap, userProfile.hunting_gap].filter(Boolean).length} gaps tracked
-            </span>
-          )}
+          <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
+            2 gaps tracked
+          </span>
         </div>
         <p className="text-sm text-gray-500 mb-5">
           Maya tracks two kinds of gaps — what's happening in your{" "}
@@ -612,20 +715,30 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-[#EF4444] bg-red-50 rounded-full px-2 py-0.5">
                 Mindset
               </span>
+              <span className="text-xs text-[#0C6B58] hover:underline cursor-pointer">Learn more</span>
             </div>
-            <h3 className="font-semibold text-[#1A1A1A] mb-1">
-              {userProfile?.mindset_gap ?? insights?.top_insights[0]?.text ?? "Analysing your mindset…"}
-            </h3>
+            <h3 className="font-semibold text-[#1A1A1A] mb-1">Rejection sensitivity</h3>
             <p className="text-xs text-gray-500 mb-4">
-              {userProfile?.mindset_gap_detail ?? insights?.top_insights[0]?.detail ?? "Maya is reviewing your patterns."}
+              Confidence is eroding faster than it's being rebuilt — the focus of your first three sessions.
             </p>
-            {insights?.top_insights[1] && (
-              <p className="text-xs text-gray-400">
-                <span className="text-[#0C6B58]">{insights.top_insights[1].text}</span>
-                {" — "}
-                {insights.top_insights[1].detail}
-              </p>
-            )}
+
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Anxiety baseline</span>
+                <span className="font-medium text-[#1A1A1A]">7/10</span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-full rounded-full bg-[#F59E0B]" style={{ width: "70%" }} />
+              </div>
+              <div className="mt-1 text-xs text-gray-400">
+                Target 3/10 · green marker is the goal
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-400">
+              Maya's plan:{" "}
+              <span className="text-[#0C6B58]">5 visualization + reframing sessions</span>
+            </p>
           </div>
 
           {/* Hiring funnel card */}
@@ -634,21 +747,20 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-[#0C6B58] bg-[#D1FAE5] rounded-full px-2 py-0.5">
                 Hiring Funnel
               </span>
+              <span className="text-xs text-[#0C6B58] hover:underline cursor-pointer">Being tracked</span>
             </div>
-            <h3 className="font-semibold text-[#1A1A1A] mb-1">
-              {userProfile?.hunting_gap ?? insights?.hiring_funnel_gap?.title ?? "Hiring Funnel Gap"}
-            </h3>
+            <h3 className="font-semibold text-[#1A1A1A] mb-1">Screening → final conversion</h3>
             <p className="text-xs text-gray-500 mb-4">
-              {userProfile?.hunting_gap_detail ?? insights?.hiring_funnel_gap?.body ?? "Maya is analysing your pipeline."}
+              You turn applications into screens, but stall before the final round. Maya will surface the pattern.
             </p>
 
             {/* Funnel steps */}
             <div className="flex gap-2 mb-3">
               {[
-                { label: "Applied", value: displayFunnel.applied || "—", active: displayFunnel.applied > 0 },
-                { label: "Screening", value: displayFunnel.screening || "—", active: displayFunnel.screening > 0 },
-                { label: "Final", value: displayFunnel.final || "—", active: displayFunnel.final > 0 },
-                { label: "Offer", value: displayFunnel.offer || "—", active: displayFunnel.offer > 0 },
+                { label: "Applied", value: 12, active: true },
+                { label: "Screening", value: 2, active: true },
+                { label: "Final", value: 1, active: false },
+                { label: "Offer", value: 0, active: false },
               ].map((step) => (
                 <div
                   key={step.label}
@@ -662,18 +774,20 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            {insights?.hiring_funnel_gap?.based_on && (
-              <p className="text-xs text-gray-400">{insights.hiring_funnel_gap.based_on}</p>
-            )}
+            <p className="text-xs text-gray-400">
+              Maya's plan:{" "}
+              <span className="text-[#0C6B58] cursor-pointer hover:underline">
+                update activity to unlock the pattern
+              </span>
+            </p>
           </div>
         </div>
 
         {/* Connecting insight */}
-        {insights?.secondary_insights[0] && (
-          <div className="mt-4 rounded-xl bg-[#F0FDF9] border border-[#A7F3D0] p-3 text-xs text-[#065F46]">
-            {insights.secondary_insights[0].text}
-          </div>
-        )}
+        <div className="mt-4 rounded-xl bg-[#F0FDF9] border border-[#A7F3D0] p-3 text-xs text-[#065F46]">
+          These two feed each other — rejection wears down confidence, which slows the search and invites more rejection.{" "}
+          <span className="font-semibold">Maya works both sides of the loop at once.</span>
+        </div>
       </div>
 
       {/* ── Last session + Confidence chart ── */}
@@ -696,12 +810,8 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleReplayLastSession}
-              disabled={replayingLastSession}
-              className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors disabled:opacity-50"
-            >
-              {replayingLastSession ? "Loading…" : "Replay"}
+            <button className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors">
+              Replay
             </button>
           </div>
         </div>
