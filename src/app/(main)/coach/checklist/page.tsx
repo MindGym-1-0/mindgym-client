@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CoachApiError, getInterviewChecklist } from "../../../../lib/coach/api";
+import {
+  CoachApiError,
+  getInterviewChecklist,
+  updateInterviewChecklistItem,
+} from "../../../../lib/coach/api";
 import type { InterviewChecklistResponse } from "../../../../lib/coach/types";
 
 export default function ChecklistPage() {
   const [interviewId, setInterviewId] = useState<string | null>(null);
   const [checklist, setChecklist] = useState<InterviewChecklistResponse | null>(null);
   const [checkedById, setCheckedById] = useState<Record<string, boolean>>({});
+  const [savingById, setSavingById] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -28,6 +34,7 @@ export default function ChecklistPage() {
 
       setIsLoading(true);
       setError(null);
+      setSaveError(null);
 
       try {
         const data = await getInterviewChecklist(interviewId);
@@ -73,12 +80,38 @@ export default function ChecklistPage() {
     return checkedById[id] ?? initialChecked;
   }
 
-  function toggleItem(id: string) {
-    // TODO: persist checklist completion when backend endpoint exists.
+  async function toggleItem(id: string, currentChecked: boolean) {
+    if (!interviewId || savingById[id]) return;
+
+    const nextChecked = !currentChecked;
+    setSaveError(null);
     setCheckedById((current) => ({
       ...current,
-      [id]: !current[id],
+      [id]: nextChecked,
     }));
+    setSavingById((current) => ({
+      ...current,
+      [id]: true,
+    }));
+
+    try {
+      const result = await updateInterviewChecklistItem(interviewId, id, nextChecked);
+      setCheckedById((current) => ({
+        ...current,
+        [id]: result.checked,
+      }));
+    } catch {
+      setCheckedById((current) => ({
+        ...current,
+        [id]: currentChecked,
+      }));
+      setSaveError("We couldn't save that checklist update. Please try again.");
+    } finally {
+      setSavingById((current) => ({
+        ...current,
+        [id]: false,
+      }));
+    }
   }
 
   return (
@@ -100,6 +133,12 @@ export default function ChecklistPage() {
       {error ? (
         <div className="mb-6 rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
           {error}
+        </div>
+      ) : null}
+
+      {saveError ? (
+        <div className="mb-6 rounded-xl border border-[#F2C879] bg-[#FFF5E6] p-4 text-sm text-[#8B5E00]">
+          {saveError}
         </div>
       ) : null}
 
@@ -127,6 +166,7 @@ export default function ChecklistPage() {
           <div className="space-y-4">
             {(checklist?.mental_prep ?? []).map((item) => {
               const checked = isItemChecked(item.id, item.checked);
+              const isSaving = Boolean(savingById[item.id]);
 
               return (
                 <button
@@ -134,8 +174,10 @@ export default function ChecklistPage() {
                   type="button"
                   role="checkbox"
                   aria-checked={checked}
-                  onClick={() => toggleItem(item.id)}
-                  className="flex w-full items-center gap-3 text-left"
+                  aria-disabled={isSaving}
+                  disabled={isSaving}
+                  onClick={() => void toggleItem(item.id, checked)}
+                  className="flex w-full items-center gap-3 text-left disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <div
                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm ${
@@ -161,6 +203,7 @@ export default function ChecklistPage() {
             <div className="space-y-4">
               {(checklist?.logistics ?? []).map((item) => {
                 const checked = isItemChecked(item.id, item.checked);
+                const isSaving = Boolean(savingById[item.id]);
 
                 return (
                   <button
@@ -168,8 +211,10 @@ export default function ChecklistPage() {
                     type="button"
                     role="checkbox"
                     aria-checked={checked}
-                    onClick={() => toggleItem(item.id)}
-                    className="flex w-full items-center gap-3 text-left"
+                    aria-disabled={isSaving}
+                    disabled={isSaving}
+                    onClick={() => void toggleItem(item.id, checked)}
+                    className="flex w-full items-center gap-3 text-left disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <div
                       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm ${

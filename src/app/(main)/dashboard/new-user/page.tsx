@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
 import { getGreeting } from "@/lib/greeting";
 import { getSessionHistory } from "@/lib/session/api";
-import { writeSetup, clearSetup } from "@/lib/session/store";
+import { clearSetup } from "@/lib/session/store";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -230,6 +230,7 @@ export default function NewUserDashboardPage() {
           <p className="text-sm text-[#686460]">
             Overview <span className="mx-1.5 text-[#C4BEB9]">›</span> Daily Dashboard
           </p>
+          <p className="mt-1 text-xs text-[#9CA3AF]">{dateStr}</p>
           <h1 className="mt-4 text-[34px] font-semibold leading-[42px] text-[#171412]">
             {getGreeting(name)} 👋
           </h1>
