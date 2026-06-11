@@ -144,3 +144,91 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
   }
   return res.json() as Promise<SessionDetail>;
 }
+
+// ─── Daily Focus & Weekly Mission Additions ──────────────────────────────────
+
+export interface DailyFocusPlan {
+  id: string;
+  date: string;
+  action_1_text: string;
+  action_1_type: string;
+  action_1_completed: boolean;
+  action_2_text: string | null;
+  action_2_type: string | null;
+  action_2_completed: boolean;
+  current_streak?: number;
+}
+
+export interface WeeklyMissionPlan {
+  id: string;
+  week_start_date: string;
+  action_1: string;
+  action_1_completed: boolean;
+  action_2: string;
+  action_2_completed: boolean;
+  action_3: string;
+  action_3_completed: boolean;
+  completion_count: number;
+}
+
+export async function generateDailyFocus(): Promise<DailyFocusPlan> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/daily_focus/generate`, { 
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to generate daily focus items (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<DailyFocusPlan>;
+}
+
+export async function completeDailyFocus(actionId: "action_1" | "action_2"): Promise<{ current_streak: number }> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/daily_focus/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ action_id: actionId }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to mark focus task complete (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<{ current_streak: number }>;
+}
+
+export async function generateWeeklyMission(): Promise<WeeklyMissionPlan> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/weekly_mission/generate`, { 
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to generate weekly mission criteria (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<WeeklyMissionPlan>;
+}
+
+export async function completeWeeklyMission(
+  missionItemId: "action_1" | "action_2" | "action_3"
+): Promise<{ items_completed: number }> {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/api/weekly_mission/complete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ mission_item_id: missionItemId }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to finalize weekly mission target (${res.status}): ${text}`);
+  }
+  return res.json() as Promise<{ items_completed: number }>;
+}
