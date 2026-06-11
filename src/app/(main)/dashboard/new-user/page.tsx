@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
 import { getGreeting } from "@/lib/greeting";
 import { getSessionHistory } from "@/lib/session/api";
-import { writeSetup, clearSetup } from "@/lib/session/store";
+import { clearSetup } from "@/lib/session/store";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -106,7 +106,7 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
 export default function NewUserDashboardPage() {
   const name = useUserName();
   const router = useRouter();
-  const [dateStr, setDateStr] = useState("");
+  const [setDateStr] = useState("");
   const [lastSession, setLastSession] = useState<{
     title: string;
     duration: string;
