@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
 import { getGreeting } from "@/lib/greeting";
 import { getInterviews, type InterviewItem } from "@/lib/interviews/api";
-import { getSessionHistory } from "@/lib/session/api";
-import { writeSetup, clearSetup } from "@/lib/session/store";
+import { getSessionHistory, getSessionDetail } from "@/lib/session/api";
+import { writeSetup, clearSetup, writeActive } from "@/lib/session/store";
 import { getInsights, getUserProfile, type InsightsResponse, type UserProfile } from "@/lib/insights/api";
 import { getApplications, toFunnelCounts, type FunnelCounts } from "@/lib/applications/api";
 
@@ -224,7 +224,8 @@ export default function DashboardPage() {
   const [upcomingInterviews, setUpcomingInterviews] = useState<InterviewItem[]>([]);
   const [sessionCount, setSessionCount] = useState<number | null>(null);
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
-  const [lastSession, setLastSession] = useState<{ label: string; score: string; delta: string } | null>(null);
+  const [lastSession, setLastSession] = useState<{ id: string; label: string; score: string; delta: string; anxietyBefore: number } | null>(null);
+  const [replayingLastSession, setReplayingLastSession] = useState(false);
   const [insights, setInsights] = useState<InsightsResponse | null>(null);
   const [funnelCounts, setFunnelCounts] = useState<FunnelCounts | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -238,6 +239,23 @@ export default function DashboardPage() {
       role: interview.role,
     });
     router.push("/sessions/setup/emotions");
+  }
+
+  async function handleReplayLastSession() {
+    if (!lastSession || replayingLastSession) return;
+    setReplayingLastSession(true);
+    try {
+      const detail = await getSessionDetail(lastSession.id);
+      writeActive({
+        session_id: detail.id,
+        script: detail.script,
+        anxiety_level_before: lastSession.anxietyBefore,
+      });
+      router.push("/sessions/active");
+    } catch (err) {
+      console.error("Failed to replay session:", err);
+      setReplayingLastSession(false);
+    }
   }
 
   function handleStartSession() {
@@ -262,27 +280,21 @@ export default function DashboardPage() {
       .then((sessions) => {
         setSessionCount(sessions.length);
         if (sessions.length > 0) {
-          const s = sessions[sessions.length - 1];
-
-    setLastSession({
-  label:
-    s.preparation_for
-      ?.replaceAll("_", " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase()) ??
-    "Calm Reset – Pre-Interview",
-
-  score: `${
-    s.anxiety_level_after ??
-    s.anxiety_level_before
-  }/10`,
-
-  delta:
-    s.anxiety_level_delta !== null
-      ? `${s.anxiety_level_delta > 0 ? "+" : ""}${
-          s.anxiety_level_delta
-        }`
-      : "—",
-     });
+          const s = sessions[0];
+          setLastSession({
+            id: s.id,
+            label:
+              s.preparation_for
+                ?.replaceAll("_", " ")
+                .replace(/\b\w/g, (c) => c.toUpperCase()) ??
+              "Calm Reset – Pre-Interview",
+            score: `${s.anxiety_level_after ?? s.anxiety_level_before}/10`,
+            delta:
+              s.anxiety_level_delta !== null
+                ? `${s.anxiety_level_delta > 0 ? "+" : ""}${s.anxiety_level_delta}`
+                : "—",
+            anxietyBefore: s.anxiety_level_before,
+          });
         }
       })
       .catch((err) => console.error("Failed to load session history:", err));
@@ -693,8 +705,12 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <button className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors">
-              Replay
+            <button
+              onClick={handleReplayLastSession}
+              disabled={replayingLastSession}
+              className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              {replayingLastSession ? "Loading…" : "Replay"}
             </button>
           </div>
         </div>
