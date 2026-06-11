@@ -103,10 +103,9 @@ function MoodTracker() {
       ))}
 
       <button
-        onClick={handleLogout}
         className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black"
       >
-        Log Out
+        Log
       </button>
     </div>
   );
