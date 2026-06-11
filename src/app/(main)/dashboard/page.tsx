@@ -401,7 +401,10 @@ export default function DashboardPage() {
                 >
                   Prepare with Maya →
                 </button>
-                <button className="rounded-xl border border-white/30 px-4 py-2 text-sm hover:bg-white/10 transition-colors">
+                <button
+                  onClick={() => router.push(`/coach/checklist?interview_id=${nextInterview.id}`)}
+                  className="rounded-xl border border-white/30 px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                >
                   View checklist
                 </button>
               </div>
