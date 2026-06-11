@@ -9,6 +9,8 @@ import { getGreeting } from "@/lib/greeting";
 import { getInterviews, type InterviewItem } from "@/lib/interviews/api";
 import { getSessionHistory } from "@/lib/session/api";
 import { writeSetup, clearSetup } from "@/lib/session/store";
+import { getInsights, getUserProfile, type InsightsResponse, type UserProfile } from "@/lib/insights/api";
+import { getApplications, toFunnelCounts, type FunnelCounts } from "@/lib/applications/api";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -227,6 +229,9 @@ export default function DashboardPage() {
   const [sessionCount, setSessionCount] = useState<number | null>(null);
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
   const [lastSession, setLastSession] = useState<{ label: string; score: string; delta: string } | null>(null);
+  const [insights, setInsights] = useState<InsightsResponse | null>(null);
+  const [funnelCounts, setFunnelCounts] = useState<FunnelCounts | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   function handlePrepareWithMaya(interview: InterviewItem) {
     clearSetup();
@@ -284,6 +289,18 @@ export default function DashboardPage() {
         }
       })
       .catch((err) => console.error("Failed to load session history:", err));
+
+    getInsights()
+      .then((data) => setInsights(data))
+      .catch((err) => console.error("Failed to load insights:", err));
+
+    getApplications()
+      .then((apps) => setFunnelCounts(toFunnelCounts(apps)))
+      .catch((err) => console.error("Failed to load applications:", err));
+
+    getUserProfile()
+      .then((data) => setUserProfile(data))
+      .catch((err) => console.error("Failed to load user profile:", err));
   }, []);
 
   // Hard-coded today's focus tasks (Maya data; swap with API when ready)
@@ -311,6 +328,17 @@ export default function DashboardPage() {
     },
   ];
   const doneCount = focusTasks.filter((t) => t.done).length;
+
+  // Use tracked app counts if available, otherwise fall back to onboarding self-reported numbers.
+  const hasTrackedApps = funnelCounts !== null && Object.values(funnelCounts).some((v) => v > 0);
+  const displayFunnel = hasTrackedApps
+    ? funnelCounts!
+    : {
+        applied: userProfile?.applications_sent_max ?? userProfile?.applications_sent_min ?? 0,
+        screening: userProfile?.recruiter_contacts ?? 0,
+        final: userProfile?.first_round_interviews ?? 0,
+        offer: userProfile?.offers ?? 0,
+      };
 
   // Second upcoming interview (for "Next up" card)
   const nextUpInterview = upcomingInterviews[1] ?? null;
@@ -535,9 +563,11 @@ export default function DashboardPage() {
       <div className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-[#1A1A1A]">What's getting in your way</h2>
-          <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
-            2 gaps tracked
-          </span>
+          {(userProfile?.mindset_gap || userProfile?.hunting_gap) && (
+            <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
+              {[userProfile.mindset_gap, userProfile.hunting_gap].filter(Boolean).length} gaps tracked
+            </span>
+          )}
         </div>
         <p className="text-sm text-gray-500 mb-5">
           Maya tracks two kinds of gaps — what's happening in your{" "}
@@ -552,30 +582,20 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-[#EF4444] bg-red-50 rounded-full px-2 py-0.5">
                 Mindset
               </span>
-              <span className="text-xs text-[#0C6B58] hover:underline cursor-pointer">Learn more</span>
             </div>
-            <h3 className="font-semibold text-[#1A1A1A] mb-1">Rejection sensitivity</h3>
+            <h3 className="font-semibold text-[#1A1A1A] mb-1">
+              {userProfile?.mindset_gap ?? insights?.top_insights[0]?.text ?? "Analysing your mindset…"}
+            </h3>
             <p className="text-xs text-gray-500 mb-4">
-              Confidence is eroding faster than it's being rebuilt — the focus of your first three sessions.
+              {userProfile?.mindset_gap_detail ?? insights?.top_insights[0]?.detail ?? "Maya is reviewing your patterns."}
             </p>
-
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>Anxiety baseline</span>
-                <span className="font-medium text-[#1A1A1A]">7/10</span>
-              </div>
-              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full bg-[#F59E0B]" style={{ width: "70%" }} />
-              </div>
-              <div className="mt-1 text-xs text-gray-400">
-                Target 3/10 · green marker is the goal
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-400">
-              Maya's plan:{" "}
-              <span className="text-[#0C6B58]">5 visualization + reframing sessions</span>
-            </p>
+            {insights?.top_insights[1] && (
+              <p className="text-xs text-gray-400">
+                <span className="text-[#0C6B58]">{insights.top_insights[1].text}</span>
+                {" — "}
+                {insights.top_insights[1].detail}
+              </p>
+            )}
           </div>
 
           {/* Hiring funnel card */}
@@ -584,20 +604,21 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-[#0C6B58] bg-[#D1FAE5] rounded-full px-2 py-0.5">
                 Hiring Funnel
               </span>
-              <span className="text-xs text-[#0C6B58] hover:underline cursor-pointer">Being tracked</span>
             </div>
-            <h3 className="font-semibold text-[#1A1A1A] mb-1">Screening → final conversion</h3>
+            <h3 className="font-semibold text-[#1A1A1A] mb-1">
+              {userProfile?.hunting_gap ?? insights?.hiring_funnel_gap?.title ?? "Hiring Funnel Gap"}
+            </h3>
             <p className="text-xs text-gray-500 mb-4">
-              You turn applications into screens, but stall before the final round. Maya will surface the pattern.
+              {userProfile?.hunting_gap_detail ?? insights?.hiring_funnel_gap?.body ?? "Maya is analysing your pipeline."}
             </p>
 
             {/* Funnel steps */}
             <div className="flex gap-2 mb-3">
               {[
-                { label: "Applied", value: 12, active: true },
-                { label: "Screening", value: 2, active: true },
-                { label: "Final", value: 1, active: false },
-                { label: "Offer", value: 0, active: false },
+                { label: "Applied", value: displayFunnel.applied || "—", active: displayFunnel.applied > 0 },
+                { label: "Screening", value: displayFunnel.screening || "—", active: displayFunnel.screening > 0 },
+                { label: "Final", value: displayFunnel.final || "—", active: displayFunnel.final > 0 },
+                { label: "Offer", value: displayFunnel.offer || "—", active: displayFunnel.offer > 0 },
               ].map((step) => (
                 <div
                   key={step.label}
@@ -611,20 +632,18 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <p className="text-xs text-gray-400">
-              Maya's plan:{" "}
-              <span className="text-[#0C6B58] cursor-pointer hover:underline">
-                update activity to unlock the pattern
-              </span>
-            </p>
+            {insights?.hiring_funnel_gap?.based_on && (
+              <p className="text-xs text-gray-400">{insights.hiring_funnel_gap.based_on}</p>
+            )}
           </div>
         </div>
 
         {/* Connecting insight */}
-        <div className="mt-4 rounded-xl bg-[#F0FDF9] border border-[#A7F3D0] p-3 text-xs text-[#065F46]">
-          These two feed each other — rejection wears down confidence, which slows the search and invites more rejection.{" "}
-          <span className="font-semibold">Maya works both sides of the loop at once.</span>
-        </div>
+        {insights?.secondary_insights[0] && (
+          <div className="mt-4 rounded-xl bg-[#F0FDF9] border border-[#A7F3D0] p-3 text-xs text-[#065F46]">
+            {insights.secondary_insights[0].text}
+          </div>
+        )}
       </div>
 
       {/* ── Last session + Confidence chart ── */}
