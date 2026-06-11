@@ -1,7 +1,5 @@
 "use client";
 
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
@@ -61,32 +59,19 @@ function formatInterviewTime(dateStr: string): string {
 /** Mood emoji row in the top-right */
 const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
 
-const MOOD_MESSAGES: Record<number, { text: string; tone: "positive" | "neutral" | "low" }> = {
-  0: { text: "Great energy today. Channel it into something meaningful.", tone: "positive" },
-  1: { text: "You're in a good place. Make the most of it.", tone: "positive" },
-  2: { text: "A steady start. A session could sharpen your focus.", tone: "neutral" },
-  3: { text: "Hard day? Maya has a calm reset ready for you.", tone: "low" },
-  4: { text: "Tough moment. Even five minutes with Maya can shift things.", tone: "low" },
-};
-
-function MoodTracker({ selected, onSelect }: { selected: number | null; onSelect: (i: number) => void }) {
-  const handleLogout = async () => {
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await supabase.auth.signOut();
-      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
+function MoodTracker({
+  selected,
+  onSelect,
+}: {
+  selected: number | null;
+  onSelect: (index: number) => void;
+}) {
   return (
     <div className="flex items-center gap-2">
-      <span className="mr-1 text-xs text-gray-500">Mood today</span>
+      <span className="mr-1 text-xs text-gray-500">
+        Mood today
+      </span>
+
       {MOODS.map((emoji, i) => (
         <button
           key={i}
@@ -100,11 +85,9 @@ function MoodTracker({ selected, onSelect }: { selected: number | null; onSelect
           {emoji}
         </button>
       ))}
-      <button
-        onClick={handleLogout}
-        className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black"
-      >
-        Log Out
+
+      <button className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black">
+        Log
       </button>
     </div>
   );
