@@ -1,6 +1,7 @@
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { buildApiUrl } from "../auth/api";
 import type {
+  ChecklistItemUpdateResponse,
   CoachHomeResponse,
   CoachPrepPlanRequest,
   CoachPrepPlanResponse,
@@ -210,6 +211,55 @@ export async function getInterviewChecklist(interviewId: string): Promise<Interv
     throw new Error("Malformed checklist response.");
   }
   return payload as InterviewChecklistResponse;
+}
+
+export async function updateInterviewChecklistItem(
+  interviewId: string,
+  itemId: string,
+  checked: boolean
+): Promise<ChecklistItemUpdateResponse> {
+  const token = await getToken();
+  const encodedInterviewId = encodeURIComponent(interviewId);
+  const encodedItemId = encodeURIComponent(itemId);
+  const response = await fetch(
+    buildApiUrl(`/api/coach/checklist/${encodedInterviewId}/items/${encodedItemId}`),
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ checked }),
+    }
+  );
+
+  if (!response.ok) await throwCoachApiError(response);
+
+  if (response.status === 204) {
+    return {
+      interview_id: interviewId,
+      item_id: itemId,
+      checked,
+    };
+  }
+
+  const payload = await parseJsonSafely(response);
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return {
+      interview_id: interviewId,
+      item_id: itemId,
+      checked,
+    };
+  }
+
+  const candidate = payload as Record<string, unknown>;
+
+  return {
+    interview_id:
+      typeof candidate.interview_id === "string" ? candidate.interview_id : interviewId,
+    item_id: typeof candidate.item_id === "string" ? candidate.item_id : itemId,
+    checked: typeof candidate.checked === "boolean" ? candidate.checked : checked,
+  };
 }
 
 export type Interview = {
