@@ -59,25 +59,25 @@ function formatInterviewTime(dateStr: string): string {
 // ─── sub-components ─────────────────────────────────────────────────────────
 
 /** Mood emoji row in the top-right */
-function MoodTracker() {
-  const moods = ["😊", "😄", "😐", "😟", "😞"];
-  const [selected, setSelected] = useState<number | null>(null);
+const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
 
+const MOOD_MESSAGES: Record<number, { text: string; tone: "positive" | "neutral" | "low" }> = {
+  0: { text: "Great energy today. Channel it into something meaningful.", tone: "positive" },
+  1: { text: "You're in a good place. Make the most of it.", tone: "positive" },
+  2: { text: "A steady start. A session could sharpen your focus.", tone: "neutral" },
+  3: { text: "Hard day? Maya has a calm reset ready for you.", tone: "low" },
+  4: { text: "Tough moment. Even five minutes with Maya can shift things.", tone: "low" },
+};
+
+function MoodTracker({ selected, onSelect }: { selected: number | null; onSelect: (i: number) => void }) {
   const handleLogout = async () => {
     try {
       const supabase = getSupabaseBrowserClient();
-
       await supabase.auth.signOut();
-
-      // Clear backend auth cookies used by middleware
-      document.cookie =
-        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie =
-        "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
+      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       localStorage.clear();
       sessionStorage.clear();
-
       window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
@@ -86,14 +86,11 @@ function MoodTracker() {
 
   return (
     <div className="flex items-center gap-2">
-      <span className="mr-1 text-xs text-gray-500">
-        Mood today
-      </span>
-
-      {moods.map((emoji, i) => (
+      <span className="mr-1 text-xs text-gray-500">Mood today</span>
+      {MOODS.map((emoji, i) => (
         <button
           key={i}
-          onClick={() => setSelected(i)}
+          onClick={() => onSelect(i)}
           className={`flex h-8 w-8 items-center justify-center rounded-full text-lg transition-all ${
             selected === i
               ? "ring-2 ring-[#0C6B58] bg-[#0C6B58]/10"
@@ -103,7 +100,6 @@ function MoodTracker() {
           {emoji}
         </button>
       ))}
-
       <button
         onClick={handleLogout}
         className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black"
@@ -232,6 +228,7 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<InsightsResponse | null>(null);
   const [funnelCounts, setFunnelCounts] = useState<FunnelCounts | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [selectedMood, setSelectedMood] = useState<number | null>(null);
 
   function handlePrepareWithMaya(interview: InterviewItem) {
     clearSetup();
@@ -353,8 +350,33 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-1 text-sm text-gray-400">{dateStr}</p>
         </div>
-        <MoodTracker />
+        <MoodTracker selected={selectedMood} onSelect={setSelectedMood} />
       </div>
+
+      {/* ── Mood callout ── */}
+      {selectedMood !== null && (() => {
+        const mood = MOOD_MESSAGES[selectedMood];
+        const isLow = mood.tone === "low";
+        return (
+          <div className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm ${
+            isLow
+              ? "bg-[#FFF7ED] border border-[#FED7AA] text-[#92400E]"
+              : mood.tone === "positive"
+              ? "bg-[#F0FDF9] border border-[#A7F3D0] text-[#065F46]"
+              : "bg-[#F3F4F6] border border-gray-200 text-gray-600"
+          }`}>
+            <span>{MOODS[selectedMood]} {mood.text}</span>
+            {isLow && (
+              <button
+                onClick={handleStartSession}
+                className="ml-4 flex-shrink-0 rounded-lg bg-[#0C6B58] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0a5a49] transition-colors"
+              >
+                Start a session →
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Interview banner + Next up ── */}
       <div className="grid grid-cols-3 gap-4">
