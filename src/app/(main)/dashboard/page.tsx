@@ -58,15 +58,28 @@ function formatInterviewTime(dateStr: string): string {
 
 /** Mood emoji row in the top-right */
 const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
-
-const MOOD_MESSAGES: { text: string; tone: "positive" | "neutral" | "low" }[] = [
-  { text: "Great to hear — let's keep that momentum going!", tone: "positive" },
-  { text: "Nice! A good mood is your secret weapon.", tone: "positive" },
-  { text: "Feeling neutral is okay — small wins add up.", tone: "neutral" },
-  { text: "Rough day? A quick session can help reset.", tone: "low" },
-  { text: "It's tough right now — Maya's here when you're ready.", tone: "low" },
-];
-
+const MOOD_MESSAGES = [
+  {
+    tone: "positive",
+    text: "Great energy today. Keep the momentum going.",
+  },
+  {
+    tone: "positive",
+    text: "You're feeling confident. A good day to tackle challenges.",
+  },
+  {
+    tone: "neutral",
+    text: "Feeling balanced today. Stay consistent.",
+  },
+  {
+    tone: "low",
+    text: "Looks like you're feeling a little stressed. Maya can help.",
+  },
+  {
+    tone: "low",
+    text: "Tough day? Take a few minutes with Maya to reset.",
+  },
+] as const;
 function MoodTracker({
   selected,
   onSelect,
