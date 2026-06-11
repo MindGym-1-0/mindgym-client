@@ -106,7 +106,7 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
 export default function NewUserDashboardPage() {
   const name = useUserName();
   const router = useRouter();
-  const [setDateStr] = useState("");
+  const [dateStr, setDateStr] = useState("");
   const [lastSession, setLastSession] = useState<{
     title: string;
     duration: string;
