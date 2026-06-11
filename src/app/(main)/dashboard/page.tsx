@@ -459,7 +459,9 @@ export default function DashboardPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center gap-2">
-              <p className="text-sm text-gray-400">No other interviews scheduled</p>
+              <p className="text-sm text-gray-400">
+                {nextInterview ? "That's your only one coming up." : "No interviews scheduled yet."}
+              </p>
               <button
                 onClick={() => router.push("/coach/interviews/add")}
                 className="mt-2 rounded-xl bg-[#F3F4F6] px-4 py-2 text-sm font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors"
