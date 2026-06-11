@@ -89,7 +89,7 @@ function MoodTracker() {
       </button>
     </div>
   );
-}
+
 
 /** Readiness dots (e.g. ●●●●○○○○○○) */
 function ReadinessDots({ value, max = 10 }: { value: number; max?: number }) {
