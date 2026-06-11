@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useUserName } from "@/hooks/useUserName";
 import { getGreeting } from "@/lib/greeting";
 import { getInterviews, type InterviewItem } from "@/lib/interviews/api";
-import { getSessionHistory } from "@/lib/session/api";
-import { writeSetup, clearSetup } from "@/lib/session/store";
+import { getSessionHistory, getSessionDetail } from "@/lib/session/api";
+import { writeSetup, clearSetup, writeActive } from "@/lib/session/store";
+import { getInsights, getUserProfile, type InsightsResponse, type UserProfile } from "@/lib/insights/api";
+import { getApplications, toFunnelCounts, type FunnelCounts } from "@/lib/applications/api";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -55,9 +57,7 @@ function formatInterviewTime(dateStr: string): string {
 // ─── sub-components ─────────────────────────────────────────────────────────
 
 /** Mood emoji row in the top-right */
-function MoodTracker() {
-  const moods = ["😊", "😄", "😐", "😟", "😞"];
-  const [selected, setSelected] = useState<number | null>(null);
+const MOODS = ["😊", "😄", "😐", "😟", "😞"] as const;
 
   return (
     <div className="flex items-center gap-2">
@@ -65,7 +65,7 @@ function MoodTracker() {
       {moods.map((emoji, i) => (
         <button
           key={i}
-          onClick={() => setSelected(i)}
+          onClick={() => onSelect(i)}
           className={`flex h-8 w-8 items-center justify-center rounded-full text-lg transition-all ${
             selected === i
               ? "ring-2 ring-[#0C6B58] bg-[#0C6B58]/10"
@@ -196,7 +196,12 @@ export default function DashboardPage() {
   const [upcomingInterviews, setUpcomingInterviews] = useState<InterviewItem[]>([]);
   const [sessionCount, setSessionCount] = useState<number | null>(null);
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
-  const [lastSession, setLastSession] = useState<{ label: string; score: string; delta: string } | null>(null);
+  const [lastSession, setLastSession] = useState<{ id: string; label: string; score: string; delta: string; anxietyBefore: number } | null>(null);
+  const [replayingLastSession, setReplayingLastSession] = useState(false);
+  const [insights, setInsights] = useState<InsightsResponse | null>(null);
+  const [funnelCounts, setFunnelCounts] = useState<FunnelCounts | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [selectedMood, setSelectedMood] = useState<number | null>(null);
 
   function handlePrepareWithMaya(interview: InterviewItem) {
     clearSetup();
@@ -206,6 +211,23 @@ export default function DashboardPage() {
       role: interview.role,
     });
     router.push("/sessions/setup/emotions");
+  }
+
+  async function handleReplayLastSession() {
+    if (!lastSession || replayingLastSession) return;
+    setReplayingLastSession(true);
+    try {
+      const detail = await getSessionDetail(lastSession.id);
+      writeActive({
+        session_id: detail.id,
+        script: detail.script,
+        anxiety_level_before: lastSession.anxietyBefore,
+      });
+      router.push("/sessions/active");
+    } catch (err) {
+      console.error("Failed to replay session:", err);
+      setReplayingLastSession(false);
+    }
   }
 
   function handleStartSession() {
@@ -230,30 +252,36 @@ export default function DashboardPage() {
       .then((sessions) => {
         setSessionCount(sessions.length);
         if (sessions.length > 0) {
-          const s = sessions[sessions.length - 1];
-
-    setLastSession({
-  label:
-    s.preparation_for
-      ?.replaceAll("_", " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase()) ??
-    "Calm Reset – Pre-Interview",
-
-  score: `${
-    s.anxiety_level_after ??
-    s.anxiety_level_before
-  }/10`,
-
-  delta:
-    s.anxiety_level_delta !== null
-      ? `${s.anxiety_level_delta > 0 ? "+" : ""}${
-          s.anxiety_level_delta
-        }`
-      : "—",
-     });
+          const s = sessions[0];
+          setLastSession({
+            id: s.id,
+            label:
+              s.preparation_for
+                ?.replaceAll("_", " ")
+                .replace(/\b\w/g, (c) => c.toUpperCase()) ??
+              "Calm Reset – Pre-Interview",
+            score: `${s.anxiety_level_after ?? s.anxiety_level_before}/10`,
+            delta:
+              s.anxiety_level_delta !== null
+                ? `${s.anxiety_level_delta > 0 ? "+" : ""}${s.anxiety_level_delta}`
+                : "—",
+            anxietyBefore: s.anxiety_level_before,
+          });
         }
       })
       .catch((err) => console.error("Failed to load session history:", err));
+
+    getInsights()
+      .then((data) => setInsights(data))
+      .catch((err) => console.error("Failed to load insights:", err));
+
+    getApplications()
+      .then((apps) => setFunnelCounts(toFunnelCounts(apps)))
+      .catch((err) => console.error("Failed to load applications:", err));
+
+    getUserProfile()
+      .then((data) => setUserProfile(data))
+      .catch((err) => console.error("Failed to load user profile:", err));
   }, []);
 
   // Hard-coded today's focus tasks (Maya data; swap with API when ready)
@@ -282,6 +310,17 @@ export default function DashboardPage() {
   ];
   const doneCount = focusTasks.filter((t) => t.done).length;
 
+  // Use tracked app counts if available, otherwise fall back to onboarding self-reported numbers.
+  const hasTrackedApps = funnelCounts !== null && Object.values(funnelCounts).some((v) => v > 0);
+  const displayFunnel = hasTrackedApps
+    ? funnelCounts!
+    : {
+        applied: userProfile?.applications_sent_max ?? userProfile?.applications_sent_min ?? 0,
+        screening: userProfile?.recruiter_contacts ?? 0,
+        final: userProfile?.first_round_interviews ?? 0,
+        offer: userProfile?.offers ?? 0,
+      };
+
   // Second upcoming interview (for "Next up" card)
   const nextUpInterview = upcomingInterviews[1] ?? null;
 
@@ -295,8 +334,33 @@ export default function DashboardPage() {
           </h1>
           <p className="mt-1 text-sm text-gray-400">{dateStr}</p>
         </div>
-        <MoodTracker />
+        <MoodTracker selected={selectedMood} onSelect={setSelectedMood} />
       </div>
+
+      {/* ── Mood callout ── */}
+      {selectedMood !== null && (() => {
+        const mood = MOOD_MESSAGES[selectedMood];
+        const isLow = mood.tone === "low";
+        return (
+          <div className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm ${
+            isLow
+              ? "bg-[#FFF7ED] border border-[#FED7AA] text-[#92400E]"
+              : mood.tone === "positive"
+              ? "bg-[#F0FDF9] border border-[#A7F3D0] text-[#065F46]"
+              : "bg-[#F3F4F6] border border-gray-200 text-gray-600"
+          }`}>
+            <span>{MOODS[selectedMood]} {mood.text}</span>
+            {isLow && (
+              <button
+                onClick={handleStartSession}
+                className="ml-4 flex-shrink-0 rounded-lg bg-[#0C6B58] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0a5a49] transition-colors"
+              >
+                Start a session →
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Interview banner + Next up ── */}
       <div className="grid grid-cols-3 gap-4">
@@ -321,7 +385,10 @@ export default function DashboardPage() {
                 >
                   Prepare with Maya →
                 </button>
-                <button className="rounded-xl border border-white/30 px-4 py-2 text-sm hover:bg-white/10 transition-colors">
+                <button
+                  onClick={() => router.push(`/coach/checklist?interview_id=${nextInterview.id}`)}
+                  className="rounded-xl border border-white/30 px-4 py-2 text-sm hover:bg-white/10 transition-colors"
+                >
                   View checklist
                 </button>
               </div>
@@ -379,7 +446,9 @@ export default function DashboardPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center gap-2">
-              <p className="text-sm text-gray-400">No other interviews scheduled</p>
+              <p className="text-sm text-gray-400">
+                {nextInterview ? "That's your only one coming up." : "No interviews scheduled yet."}
+              </p>
               <button
                 onClick={() => router.push("/coach/interviews/add")}
                 className="mt-2 rounded-xl bg-[#F3F4F6] px-4 py-2 text-sm font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors"
@@ -505,9 +574,11 @@ export default function DashboardPage() {
       <div className="rounded-2xl bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold text-[#1A1A1A]">What's getting in your way</h2>
-          <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
-            2 gaps tracked
-          </span>
+          {(userProfile?.mindset_gap || userProfile?.hunting_gap) && (
+            <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
+              {[userProfile.mindset_gap, userProfile.hunting_gap].filter(Boolean).length} gaps tracked
+            </span>
+          )}
         </div>
         <p className="text-sm text-gray-500 mb-5">
           Maya tracks two kinds of gaps — what's happening in your{" "}
@@ -522,30 +593,20 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-[#EF4444] bg-red-50 rounded-full px-2 py-0.5">
                 Mindset
               </span>
-              <span className="text-xs text-[#0C6B58] hover:underline cursor-pointer">Learn more</span>
             </div>
-            <h3 className="font-semibold text-[#1A1A1A] mb-1">Rejection sensitivity</h3>
+            <h3 className="font-semibold text-[#1A1A1A] mb-1">
+              {userProfile?.mindset_gap ?? insights?.top_insights[0]?.text ?? "Analysing your mindset…"}
+            </h3>
             <p className="text-xs text-gray-500 mb-4">
-              Confidence is eroding faster than it's being rebuilt — the focus of your first three sessions.
+              {userProfile?.mindset_gap_detail ?? insights?.top_insights[0]?.detail ?? "Maya is reviewing your patterns."}
             </p>
-
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>Anxiety baseline</span>
-                <span className="font-medium text-[#1A1A1A]">7/10</span>
-              </div>
-              <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full bg-[#F59E0B]" style={{ width: "70%" }} />
-              </div>
-              <div className="mt-1 text-xs text-gray-400">
-                Target 3/10 · green marker is the goal
-              </div>
-            </div>
-
-            <p className="text-xs text-gray-400">
-              Maya's plan:{" "}
-              <span className="text-[#0C6B58]">5 visualization + reframing sessions</span>
-            </p>
+            {insights?.top_insights[1] && (
+              <p className="text-xs text-gray-400">
+                <span className="text-[#0C6B58]">{insights.top_insights[1].text}</span>
+                {" — "}
+                {insights.top_insights[1].detail}
+              </p>
+            )}
           </div>
 
           {/* Hiring funnel card */}
@@ -554,20 +615,21 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-[#0C6B58] bg-[#D1FAE5] rounded-full px-2 py-0.5">
                 Hiring Funnel
               </span>
-              <span className="text-xs text-[#0C6B58] hover:underline cursor-pointer">Being tracked</span>
             </div>
-            <h3 className="font-semibold text-[#1A1A1A] mb-1">Screening → final conversion</h3>
+            <h3 className="font-semibold text-[#1A1A1A] mb-1">
+              {userProfile?.hunting_gap ?? insights?.hiring_funnel_gap?.title ?? "Hiring Funnel Gap"}
+            </h3>
             <p className="text-xs text-gray-500 mb-4">
-              You turn applications into screens, but stall before the final round. Maya will surface the pattern.
+              {userProfile?.hunting_gap_detail ?? insights?.hiring_funnel_gap?.body ?? "Maya is analysing your pipeline."}
             </p>
 
             {/* Funnel steps */}
             <div className="flex gap-2 mb-3">
               {[
-                { label: "Applied", value: 12, active: true },
-                { label: "Screening", value: 2, active: true },
-                { label: "Final", value: 1, active: false },
-                { label: "Offer", value: 0, active: false },
+                { label: "Applied", value: displayFunnel.applied || "—", active: displayFunnel.applied > 0 },
+                { label: "Screening", value: displayFunnel.screening || "—", active: displayFunnel.screening > 0 },
+                { label: "Final", value: displayFunnel.final || "—", active: displayFunnel.final > 0 },
+                { label: "Offer", value: displayFunnel.offer || "—", active: displayFunnel.offer > 0 },
               ].map((step) => (
                 <div
                   key={step.label}
@@ -581,20 +643,18 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <p className="text-xs text-gray-400">
-              Maya's plan:{" "}
-              <span className="text-[#0C6B58] cursor-pointer hover:underline">
-                update activity to unlock the pattern
-              </span>
-            </p>
+            {insights?.hiring_funnel_gap?.based_on && (
+              <p className="text-xs text-gray-400">{insights.hiring_funnel_gap.based_on}</p>
+            )}
           </div>
         </div>
 
         {/* Connecting insight */}
-        <div className="mt-4 rounded-xl bg-[#F0FDF9] border border-[#A7F3D0] p-3 text-xs text-[#065F46]">
-          These two feed each other — rejection wears down confidence, which slows the search and invites more rejection.{" "}
-          <span className="font-semibold">Maya works both sides of the loop at once.</span>
-        </div>
+        {insights?.secondary_insights[0] && (
+          <div className="mt-4 rounded-xl bg-[#F0FDF9] border border-[#A7F3D0] p-3 text-xs text-[#065F46]">
+            {insights.secondary_insights[0].text}
+          </div>
+        )}
       </div>
 
       {/* ── Last session + Confidence chart ── */}
@@ -617,8 +677,12 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <button className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors">
-              Replay
+            <button
+              onClick={handleReplayLastSession}
+              disabled={replayingLastSession}
+              className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              {replayingLastSession ? "Loading…" : "Replay"}
             </button>
           </div>
         </div>
