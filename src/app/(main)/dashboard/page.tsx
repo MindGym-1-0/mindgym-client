@@ -60,14 +60,10 @@ function formatInterviewTime(dateStr: string): string {
 function MoodTracker() {
   const moods = ["😊", "😄", "😐", "😟", "😞"];
   const [selected, setSelected] = useState<number | null>(null);
-  };
 
   return (
     <div className="flex items-center gap-2">
-      <span className="mr-1 text-xs text-gray-500">
-        Mood today
-      </span>
-
+      <span className="mr-1 text-xs text-gray-500">Mood today</span>
       {moods.map((emoji, i) => (
         <button
           key={i}
@@ -81,15 +77,12 @@ function MoodTracker() {
           {emoji}
         </button>
       ))}
-
-      <button
-        className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black"
-      >
+      <button className="ml-2 rounded-lg bg-[#1A1A1A] px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black">
         Log
       </button>
     </div>
   );
-
+}
 
 /** Readiness dots (e.g. ●●●●○○○○○○) */
 function ReadinessDots({ value, max = 10 }: { value: number; max?: number }) {
