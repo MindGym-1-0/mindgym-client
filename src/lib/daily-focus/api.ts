@@ -23,7 +23,7 @@ export interface DailyFocusPlan {
   action_2_text: string | null;
   action_2_type: string | null;
   action_2_completed: boolean;
-  created_at: string;
+  generated_at: string;
   updated_at: string;
 }
 
