@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { clearSetup } from "@/lib/session/store";
 import type { LucideIcon } from "lucide-react";
 
 import {
@@ -193,13 +194,17 @@ export default function Sidebar({
                                   pathname ===
                                   child.href;
 
+                                const isSessionStart =
+                                  child.href === "/sessions/setup/emotions";
+
                                 return (
                                   <Link
                                     key={child.href}
                                     href={child.href}
-                                    onClick={() =>
-                                      onClose?.()
-                                    }
+                                    onClick={() => {
+                                      if (isSessionStart) clearSetup();
+                                      onClose?.();
+                                    }}
                                     className={`min-h-[44px] rounded-lg px-3 py-2 text-sm transition-all ${
                                       childActive
                                         ? "bg-[#DDF4EE] text-[#0C6B58] font-medium"
