@@ -30,6 +30,14 @@ function formatDate(date: Date): string {
   );
 }
 
+function daysUntil(dateStr: string): number {
+  const target = new Date(dateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 function formatInterviewTime(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -157,6 +165,7 @@ export default function DashboardPage() {
   const [nextInterview, setNextInterview] = useState<InterviewItem | null>(null);
   const [upcomingInterviews, setUpcomingInterviews] = useState<InterviewItem[]>([]);
   const [sessionCount, setSessionCount] = useState<number | null>(null);
+  const [prepSessionCount, setPrepSessionCount] = useState<number>(0);
   const [interviewCount, setInterviewCount] = useState<number | null>(null);
   const [lastSession, setLastSession] = useState<{ id: string; label: string; score: string; delta: string; anxietyBefore: number } | null>(null);
   const [replayingLastSession, setReplayingLastSession] = useState(false);
@@ -278,6 +287,7 @@ export default function DashboardPage() {
     getSessionHistory()
       .then((sessions) => {
         setSessionCount(sessions.length);
+        setPrepSessionCount(sessions.filter((s) => s.preparation_for === "interview_tomorrow").length);
         if (sessions.length > 0) {
           const s = sessions[0];
           setLastSession({
@@ -459,7 +469,9 @@ export default function DashboardPage() {
                 <h3 className="mt-2 text-base font-semibold text-[#1A1A1A] leading-snug">
                   {nextUpInterview.role} @ {nextUpInterview.company}
                 </h3>
-                <p className="mt-1 text-xs text-gray-400">0 days away · 0 prep sessions</p>
+                <p className="mt-1 text-xs text-gray-400">
+                  {daysUntil(nextUpInterview.interview_date)} days away · {prepSessionCount} prep sessions
+                </p>
               </div>
               <button
                 onClick={() => handlePrepareWithMaya(nextUpInterview)}
