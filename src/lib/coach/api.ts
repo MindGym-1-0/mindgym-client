@@ -267,6 +267,7 @@ export type Interview = {
   company: string;
   role: string;
   interview_date: string;
+  outcome?: InterviewOutcome | null;
   event_type?: string;
   job_id?: string | null;
 };
