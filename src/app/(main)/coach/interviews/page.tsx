@@ -36,6 +36,39 @@ function formatPastDate(raw: string): string {
   }
 }
 
+function renderPastInterviewOutcomeAction(
+  interview: Interview,
+  onUpdateOutcome: (interviewId: string) => void
+) {
+  const hasInterviewId = Boolean(interview.id?.trim());
+
+  if (interview.outcome === "offer") {
+    return (
+      <span className="rounded-lg border border-[#D7E8B5] bg-[#F4F9E8] px-4 py-2 text-sm font-medium text-[#4E6B18]">
+        {"offer 🎊"}
+      </span>
+    );
+  }
+
+  if (interview.outcome === "no_offer") {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={!hasInterviewId}
+      onClick={() => {
+        if (!hasInterviewId) return;
+        onUpdateOutcome(interview.id);
+      }}
+      className="rounded-lg border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {"Update outcome ->"}
+    </button>
+  );
+}
+
 export default function InterviewsPage() {
   const router = useRouter();
   const [upcoming, setUpcoming] = useState<Interview[]>([]);
@@ -171,12 +204,9 @@ export default function InterviewsPage() {
                   </h3>
                   <p className="text-sm text-gray-500">{formatPastDate(interview.interview_date)}</p>
                 </div>
-                <button
-                  onClick={() => router.push(`/coach/interview-checkin?interview_id=${interview.id}`)}
-                  className="rounded-lg border px-4 py-2 text-sm"
-                >
-                  {"Update outcome ->"}
-                </button>
+                {renderPastInterviewOutcomeAction(interview, (interviewId) => {
+                  router.push(`/coach/interview-checkin?interview_id=${interviewId}`);
+                })}
               </div>
             ))}
           </div>
