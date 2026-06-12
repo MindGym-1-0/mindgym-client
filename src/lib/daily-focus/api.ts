@@ -35,7 +35,7 @@ export interface DailyFocusCompleteResponse {
 
 export async function generateDailyFocus(): Promise<DailyFocusPlan> {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/api/daily_focus/generate`, {
+  const res = await fetch(`${API_BASE}/api/daily-focus/generate`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -50,7 +50,7 @@ export async function completeDailyFocus(
   actionId: "action_1" | "action_2"
 ): Promise<DailyFocusCompleteResponse> {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/api/daily_focus/complete`, {
+  const res = await fetch(`${API_BASE}/api/daily-focus/complete`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
