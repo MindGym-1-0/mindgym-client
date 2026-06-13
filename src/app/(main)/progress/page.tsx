@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useEffect, useState } from "react";
 import { useUserName } from "@/hooks/useUserName";
 import { getProgress, ProgressResponse } from "@/lib/progress/api";
@@ -39,21 +37,12 @@ export default function ProgressPage() {
   const avgLift = data?.avg_lift_per_session ?? 0;
   const sessionsDone = data?.sessions_done ?? 0;
   const dayStreak = data?.day_streak ?? 0;
-  const keyInsight = data?.key_insight ?? "";
 
   const bars = Array.from({ length: 7 }, (_, i) => {
     const filled = Math.min(sessionsDone, 7);
     const baseHeights = ["h-4", "h-6", "h-8", "h-10", "h-11", "h-14", "h-16"];
     return { height: baseHeights[i], active: i < filled };
   });
-
-  const liftPercent = Math.min(Math.max((avgLift / 10) * 100, 0), 100);
-  const liftColor =
-    avgLift >= 5
-      ? "bg-[#0C6B58]"
-      : avgLift >= 2
-      ? "bg-orange-500"
-      : "bg-blue-400";
 
   return (
     <div className="min-h-screen bg-[#F6F6F4] px-4 py-6 md:px-10 md:py-8">
@@ -131,7 +120,7 @@ export default function ProgressPage() {
       </div>
 
       {/* Charts Section */}
-      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-6">
 
         {/* Sessions bar chart */}
         <div className="rounded-3xl bg-white p-5 md:p-6 shadow-sm overflow-hidden">
@@ -139,13 +128,17 @@ export default function ProgressPage() {
             SESSIONS THIS WEEK
           </h2>
 
-          <div className="mt-10 flex items-end justify-between gap-2">
+          <div className="mt-10 flex items-end justify-between gap-2 md:gap-4 h-48">
             {bars.map((bar, index) => (
               <div
                 key={index}
-                className={`flex-1 max-w-[40px] rounded-t-full ${bar.height} ${
-                  bar.active ? "bg-[#0C6B58]" : "bg-[#0C6B58] opacity-15"
-                }`}
+                className={`flex-1 max-w-[64px] rounded-t-xl transition-all duration-500 ${bar.height}`}
+                style={{
+                  background: bar.active
+                    ? "linear-gradient(180deg, #0C6B58 0%, #14A87E 100%)"
+                    : "#E8ECEA",
+                  opacity: bar.active ? 0.4 + (0.6 * (index + 1)) / 7 : 1,
+                }}
               />
             ))}
           </div>
@@ -159,80 +152,6 @@ export default function ProgressPage() {
             <span>Sat</span>
             <span>Today</span>
           </div>
-        </div>
-
-        {/* Anxiety Lift Trend */}
-        <div className="rounded-3xl bg-white p-5 md:p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-500">
-            ANXIETY REDUCTION TREND
-          </h2>
-
-          <div className="mt-8 space-y-6">
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-medium">Avg Anxiety Lift</p>
-                <p className="text-sm text-gray-500">
-                  {loading ? "—" : `${avgLift > 0 ? "+" : ""}${avgLift} pts`}
-                </p>
-              </div>
-              <div className="h-3 w-full rounded-full bg-gray-200">
-                {!loading && (
-                  <div
-                    className={`h-3 rounded-full transition-all duration-500 ${liftColor}`}
-                    style={{ width: `${liftPercent}%` }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-medium">Sessions Completed</p>
-                <p className="text-sm text-gray-500">
-                  {loading ? "—" : sessionsDone}
-                </p>
-              </div>
-              <div className="h-3 w-full rounded-full bg-gray-200">
-                {!loading && (
-                  <div
-                    className="h-3 rounded-full bg-[#0C6B58] transition-all duration-500"
-                    style={{ width: `${Math.min((sessionsDone / 20) * 100, 100)}%` }}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-sm font-medium">Day Streak</p>
-                <p className="text-sm text-gray-500">
-                  {loading ? "—" : `${dayStreak} days`}
-                </p>
-              </div>
-              <div className="h-3 w-full rounded-full bg-gray-200">
-                {!loading && (
-                  <div
-                    className="h-3 rounded-full bg-orange-400 transition-all duration-500"
-                    style={{ width: `${Math.min((dayStreak / 30) * 100, 100)}%` }}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {!loading && keyInsight && (
-            <div className="mt-8 rounded-2xl border border-[#0C6B58] bg-[#EAF8F4] p-4">
-              <p className="text-sm text-[#0C6B58] leading-relaxed">
-                {keyInsight}
-              </p>
-            </div>
-          )}
-
-          {loading && (
-            <div className="mt-8 rounded-2xl bg-gray-100 p-4 animate-pulse">
-              <div className="h-4 w-3/4 rounded bg-gray-200" />
-            </div>
-          )}
         </div>
       </div>
     </div>
