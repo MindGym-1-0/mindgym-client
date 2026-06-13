@@ -38,6 +38,55 @@ export default function LandingPage() {
 
   return (
     <div style={{ fontFamily: "'Inter', sans-serif", background: '#F5F4F0', color: '#1a1a1a' }}>
+      <style>{`
+        .nav-links { display: flex; gap: 36px; font-size: 14px; color: #444; }
+        .nav-cta { display: inline-flex; }
+        .hero-inner { padding: 220px 24px 120px; }
+        .hero-h1 { max-width: 640px; }
+        .stats-bar { display: flex; justify-content: center; gap: 80px; padding: 28px 48px; flex-wrap: wrap; }
+        .gap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; }
+        .audience-grid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+        .audience-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .loop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+        .dark-stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+        .testimonials-grid-row { display: grid; grid-template-columns: 220px 1fr; gap: 48px; }
+        .testimonials-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+        .footer-links { display: flex; gap: 28px; flex-wrap: wrap; }
+        .cta-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        section { padding: 72px 48px; }
+
+        @media (max-width: 900px) {
+          .audience-grid-row { grid-template-columns: 1fr; gap: 24px; }
+          .audience-grid-row p { padding-top: 0 !important; }
+          .audience-cards { grid-template-columns: repeat(2, 1fr); }
+          .loop-grid { grid-template-columns: 1fr; gap: 40px; }
+          .testimonials-grid-row { grid-template-columns: 1fr; gap: 32px; }
+          .testimonials-cards { grid-template-columns: 1fr 1fr; }
+          .gap-grid { grid-template-columns: 1fr; }
+          .dark-stats { grid-template-columns: repeat(2, 1fr); row-gap: 32px; }
+          .dark-stats > div:nth-child(2n+1) { border-left: none !important; }
+          .dark-stats > div:nth-child(-n+2) { padding-bottom: 16px; }
+        }
+
+        @media (max-width: 640px) {
+          nav { padding: 0 20px !important; height: 56px !important; }
+          .nav-links { display: none !important; }
+          .nav-cta { padding: 8px 16px !important; font-size: 13px !important; }
+          section { padding: 48px 20px !important; }
+          .hero-inner { padding: 140px 20px 80px !important; min-height: auto !important; }
+          .hero-h1 { font-size: clamp(34px, 9vw, 48px) !important; }
+          .stats-bar { gap: 32px !important; padding: 20px 16px !important; }
+          .audience-cards { grid-template-columns: 1fr !important; }
+          .testimonials-cards { grid-template-columns: 1fr !important; }
+          .dark-stats { grid-template-columns: 1fr !important; row-gap: 24px !important; }
+          .dark-stats > div { border-left: none !important; padding: 0 !important; }
+          .footer-row { justify-content: center; text-align: center; }
+          .footer-links { justify-content: center; }
+          .cta-row { flex-direction: column; align-items: stretch; }
+          .cta-row button { width: 100%; justify-content: center; }
+        }
+      `}</style>
 
       {/* ── NAV ── */}
       <nav style={{
@@ -50,14 +99,7 @@ export default function LandingPage() {
         {/* Logo from public/logo.png */}
         <Image src="/logo.png" alt="MindGym" width={120} height={32} style={{ objectFit: 'contain' }} />
 
-        <div
-  style={{
-    display: 'flex',
-    gap: '36px',
-    fontSize: '14px',
-    color: '#444',
-  }}
->
+        <div className="nav-links">
   <button
     onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
     style={{ background: "none", border: "none", cursor: "pointer" }}
@@ -87,6 +129,7 @@ export default function LandingPage() {
   </button>
 </div>
         <button onClick={() => router.push("/sign-up")}
+        className="nav-cta"
         style={{
           background: '#1a3d32', color: '#fff', border: 'none',
           padding: '10px 22px', borderRadius: '100px', fontSize: '14px',
@@ -95,7 +138,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ position: 'relative', minHeight: '760px', overflow: 'hidden' }}>
+      <section style={{ position: 'relative', minHeight: '760px', overflow: 'hidden', padding: 0 }}>
         {/* Background photo from public/landing.png */}
         <Image
           src="/landing.png"
@@ -112,19 +155,18 @@ export default function LandingPage() {
         }} />
 
         {/* Hero content */}
-        <div style={{
+        <div className="hero-inner" style={{
           position: 'relative', zIndex: 2,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          minHeight: '760px', padding: '220px 24px 120px',
+          minHeight: '760px',
           textAlign: 'center',
         }}>
-          <h1 style={{
+          <h1 className="hero-h1" style={{
             fontFamily: "'Georgia', 'Times New Roman', serif",
             fontSize: 'clamp(48px, 6vw, 72px)',
             fontWeight: 700, color: '#111111',
             lineHeight: 1.2, marginBottom: '20px',
             textShadow: 'none',
-            maxWidth: '640px',
           }}>
             Interviews test your answers.<br />We train your mind.
           </h1>
@@ -134,7 +176,7 @@ export default function LandingPage() {
           }}>
             MindGym helps you build confidence, stay calm, and perform at your best when it matters most.
           </p>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="cta-row">
             <button onClick={() => router.push("/sign-up")}
             style={{
               background: '#1a3d32', color: '#fff', border: 'none',
@@ -151,11 +193,9 @@ export default function LandingPage() {
         </div>
 
         {/* Stats bar */}
-        <div style={{
+        <div className="stats-bar" style={{
           position: 'relative', zIndex: 2,
           background: 'rgba(245,244,240,0.97)',
-          display: 'flex', justifyContent: 'center', gap: '80px',
-          padding: '28px 48px',
           borderTop: '1px solid rgba(0,0,0,0.06)',
         }}>
           {[
@@ -172,7 +212,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── THE GAP ── */}
-      <section id="about" style={{ padding: '72px 48px', background: '#F5F4F0' }}>
+      <section id="about" style={{ background: '#F5F4F0' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
             <div style={{ width: '28px', height: '2px', background: '#2a7a5e' }} />
@@ -183,9 +223,8 @@ export default function LandingPage() {
             fontWeight: 700, marginBottom: '40px', letterSpacing: '-0.5px',
           }}>Why good candidates still struggle</h2>
 
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '1px', background: '#e0ddd5', borderRadius: '16px', overflow: 'hidden',
+          <div className="gap-grid" style={{
+            background: '#e0ddd5', borderRadius: '16px', overflow: 'hidden',
           }}>
             {[
               {
@@ -227,9 +266,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── HOW IT WORKS — AUDIENCE ── */}
-      <section   id="how-it-works" style={{ padding: '72px 48px', background: '#F5F4F0', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+      <section id="how-it-works" style={{ background: '#F5F4F0', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', marginBottom: '48px', alignItems: 'start' }}>
+          <div className="audience-grid-row" style={{ marginBottom: '48px', alignItems: 'start' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                 <div style={{ width: '28px', height: '2px', background: '#2a7a5e' }} />
@@ -245,7 +284,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          <div className="audience-cards">
             {[
               { icon: '👤', title: 'Job Seekers', body: 'Navigating a stressful search and want to show up at their best in every interview.' },
               { icon: '🎓', title: 'Students', body: 'Entering the job market and building confidence for their first high-stakes interviews.' },
@@ -270,8 +309,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── PERFORMANCE LOOP ── */}
-      <section style={{ padding: '80px 48px', background: '#fff' }}>
-        <div style={{ maxWidth: '860px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '64px', alignItems: 'start' }}>
+      <section style={{ background: '#fff', padding: '80px 48px' }}>
+        <div className="loop-grid" style={{ maxWidth: '860px', margin: '0 auto', alignItems: 'start' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <div style={{ width: '28px', height: '2px', background: '#2a7a5e' }} />
@@ -312,7 +351,7 @@ export default function LandingPage() {
 
       {/* ── DARK STATS BAR ── */}
       <section style={{ background: '#1a3d32', padding: '56px 48px' }}>
-        <div style={{ maxWidth: '860px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)' }}>
+        <div className="dark-stats" style={{ maxWidth: '860px', margin: '0 auto' }}>
           {[
             { val: '−3.2', label: 'Average anxiety\nreduction per session' },
             { val: '89%', label: 'Feel more prepared\nafter 5 sessions' },
@@ -333,7 +372,7 @@ export default function LandingPage() {
       {/* ── TESTIMONIALS ── */}
       <section id="reviews" style={{ padding: '80px 48px', background: '#F5F4F0' }}>
         <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '48px', alignItems: 'start' }}>
+          <div className="testimonials-grid-row" style={{ alignItems: 'start' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
                 <div style={{ width: '28px', height: '2px', background: '#2a7a5e' }} />
@@ -349,7 +388,7 @@ export default function LandingPage() {
               }}>View all reviews</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="testimonials-cards">
               {[
                 {
                   text: '"I\'d bombed two final rounds before MindGym. Not because I didn\'t know my answers — because I froze. The visualisation session the morning of my Google interview changed everything."',
@@ -456,12 +495,12 @@ export default function LandingPage() {
           <p style={{ fontSize: '14px', color: '#888', marginBottom: '32px' }}>
             Train your confidence before the pressure hits.
           </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="cta-row">
             <button onClick={() => router.push("/sign-up")}
             style={{
               background: '#1a3d32', color: '#fff', border: 'none',
               padding: '13px 30px', borderRadius: '8px', fontSize: '15px',
-              fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+              fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center',
             }}>Start free trial →</button>
             <button onClick={() => router.push("/login")}
             style={{
@@ -475,13 +514,12 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{
+      <footer className="footer-row" style={{
         background: '#1a3d32', padding: '28px 48px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         {/* Logo in footer — white variant; falls back gracefully if logo has transparent bg */}
         <Image src="/logo.png" alt="MindGym" width={100} height={28} style={{ objectFit: 'contain', }} />
-        <div style={{ display: 'flex', gap: '28px' }}>
+        <div className="footer-links">
           {['About', 'Privacy', 'Terms', 'Contact', 'FAQ'].map(item => (
             <a key={item} href="#" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>{item}</a>
           ))}
