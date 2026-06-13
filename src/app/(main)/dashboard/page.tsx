@@ -94,7 +94,7 @@ function MoodTracker({
   onSelect: (index: number) => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <span className="mr-1 text-xs text-gray-500">Mood today</span>
       {MOODS.map((emoji, i) => (
         <button
@@ -371,9 +371,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 pb-10">
       {/* ── Header ── */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-semibold text-[#1A1A1A]">
+          <h1 className="text-2xl sm:text-4xl font-semibold text-[#1A1A1A]">
             {getGreeting(name)} 👋
           </h1>
           <p className="mt-1 text-sm text-gray-400">{dateStr}</p>
@@ -386,7 +386,7 @@ export default function DashboardPage() {
         const mood = MOOD_MESSAGES[selectedMood];
         const isLow = mood.tone === "low";
         return (
-          <div className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm ${
+          <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl px-4 py-3 text-sm ${
             isLow
               ? "bg-[#FFF7ED] border border-[#FED7AA] text-[#92400E]"
               : mood.tone === "positive"
@@ -397,7 +397,7 @@ export default function DashboardPage() {
             {isLow && (
               <button
                 onClick={handleStartSession}
-                className="ml-4 flex-shrink-0 rounded-lg bg-[#0C6B58] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0a5a49] transition-colors"
+                className="sm:ml-4 flex-shrink-0 rounded-lg bg-[#0C6B58] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#0a5a49] transition-colors self-start sm:self-auto"
               >
                 Start a session →
               </button>
@@ -407,21 +407,21 @@ export default function DashboardPage() {
       })()}
 
       {/* ── Interview banner + Next up ── */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2 rounded-2xl bg-[#0C6B58] p-6 text-white relative overflow-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-2xl bg-[#0C6B58] p-6 text-white relative overflow-hidden">
           {nextInterview ? (
             <>
-              <p className="text-xs opacity-70 mb-1">
+              <p className="text-xs opacity-70 mb-1 pr-24 sm:pr-0">
                 {nextInterview.event_type} · {formatInterviewTime(nextInterview.interview_date)}
               </p>
-              <h2 className="text-3xl font-semibold leading-tight max-w-xs">
+              <h2 className="text-2xl sm:text-3xl font-semibold leading-tight max-w-xs pr-24 sm:pr-0">
                 {nextInterview.role} @{" "}
                 <span className="block">{nextInterview.company}</span>
               </h2>
               {nextInterview.notes && (
-                <p className="mt-1 text-xs opacity-60">{nextInterview.notes}</p>
+                <p className="mt-1 text-xs opacity-60 pr-24 sm:pr-0">{nextInterview.notes}</p>
               )}
-              <div className="mt-5 flex gap-3">
+              <div className="mt-5 flex flex-wrap gap-3">
                 <button
                   onClick={() => handlePrepareWithMaya(nextInterview)}
                   className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black hover:bg-gray-100 transition-colors"
@@ -439,7 +439,7 @@ export default function DashboardPage() {
           ) : (
             <>
               <p className="text-xs opacity-70 mb-1">No upcoming interviews</p>
-              <h2 className="text-3xl font-semibold leading-tight">Ready when you are.</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold leading-tight">Ready when you are.</h2>
               <div className="mt-5">
                 <button
                   onClick={handleStartSession}
@@ -481,7 +481,7 @@ export default function DashboardPage() {
               </button>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center gap-2">
+            <div className="flex flex-col items-center justify-center h-full text-center gap-2 py-4">
               <p className="text-sm text-gray-400">
                 {nextInterview ? "That's your only one coming up." : "No interviews scheduled yet."}
               </p>
@@ -497,9 +497,9 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Today's focus + progress ring ── */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2 rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <span className="w-7 h-7 rounded-full bg-[#0C6B58] text-white text-xs flex items-center justify-center font-semibold">
                 M
@@ -589,7 +589,7 @@ export default function DashboardPage() {
               : `${doneCount} of 3 weekly targets done.`}
           </p>
           <button
-            onClick={() => router.push("/sessions")}
+            onClick={() => router.push("/coach/interviews")}
             className="mt-4 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-[#1A1A1A] hover:bg-gray-50 transition-colors"
           >
             View Full Plan →
@@ -600,27 +600,27 @@ export default function DashboardPage() {
       {/* ── Stats row ── */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-2xl bg-white p-5 shadow-sm">
-          <h3 className="text-4xl font-bold text-[#0C6B58]">{sessionCount ?? "—"}</h3>
+          <h3 className="text-2xl sm:text-4xl font-bold text-[#0C6B58]">{sessionCount ?? "—"}</h3>
           <p className="mt-1 text-xs text-gray-500">Sessions done</p>
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-sm">
-          <h3 className="text-4xl font-bold text-[#F59E0B] flex items-center gap-1">
+          <h3 className="text-2xl sm:text-4xl font-bold text-[#F59E0B] flex items-center gap-1">
             {currentStreak} <span className="text-xl">🔥</span>
           </h3>
           <p className="mt-1 text-xs text-gray-500">Day streak</p>
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-sm">
-          <h3 className="text-4xl font-bold text-[#1A1A1A]">{interviewCount ?? "—"}</h3>
+          <h3 className="text-2xl sm:text-4xl font-bold text-[#1A1A1A]">{interviewCount ?? "—"}</h3>
           <p className="mt-1 text-xs text-gray-500">Interviews set</p>
         </div>
       </div>
 
       {/* ── What's getting in your way ── */}
       <div className="rounded-2xl bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
           <h2 className="text-lg font-semibold text-[#1A1A1A]">What's getting in your way</h2>
           {(userProfile?.mindset_gap || userProfile?.hunting_gap) && (
-            <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500">
+            <span className="text-xs bg-[#F3F4F6] rounded-full px-3 py-1 text-gray-500 self-start sm:self-auto">
               {[userProfile.mindset_gap, userProfile.hunting_gap].filter(Boolean).length} gaps tracked
             </span>
           )}
@@ -631,7 +631,7 @@ export default function DashboardPage() {
           <span className="text-[#0C6B58] font-medium">hiring funnel</span> — and works them together, not in isolation.
         </p>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-xl border border-gray-100 p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-[#EF4444] bg-red-50 rounded-full px-2 py-0.5">
@@ -665,7 +665,7 @@ export default function DashboardPage() {
             <p className="text-xs text-gray-500 mb-4">
               {userProfile?.hunting_gap_detail ?? insights?.hiring_funnel_gap?.body ?? "Maya is analysing your pipeline."}
             </p>
-            <div className="flex gap-2 mb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
               {[
                 { label: "Applied", value: displayFunnel.applied || "—", active: displayFunnel.applied > 0 },
                 { label: "Screening", value: displayFunnel.screening || "—", active: displayFunnel.screening > 0 },
@@ -674,7 +674,7 @@ export default function DashboardPage() {
               ].map((step) => (
                 <div
                   key={step.label}
-                  className={`flex-1 rounded-lg p-2 text-center ${
+                  className={`rounded-lg p-2 text-center ${
                     step.active ? "bg-[#0C6B58] text-white" : "bg-[#F3F4F6] text-gray-400"
                   }`}
                 >
@@ -698,9 +698,9 @@ export default function DashboardPage() {
 
       {/* ── Last session ── */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="w-9 h-9 rounded-full bg-[#FEF3C7] flex items-center justify-center text-lg">
+            <span className="w-9 h-9 rounded-full bg-[#FEF3C7] flex items-center justify-center text-lg flex-shrink-0">
               🌤️
             </span>
             <div>
@@ -717,7 +717,7 @@ export default function DashboardPage() {
           <button
             onClick={handleReplayLastSession}
             disabled={replayingLastSession}
-            className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors disabled:opacity-50"
+            className="rounded-lg bg-[#F3F4F6] px-3 py-1.5 text-xs font-medium text-[#1A1A1A] hover:bg-gray-200 transition-colors disabled:opacity-50 self-start sm:self-auto"
           >
             {replayingLastSession ? "Loading…" : "Replay"}
           </button>
