@@ -1,35 +1,29 @@
 'use client';
-
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { establishSupabaseSession } from '@/lib/auth/api';
-
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
-
   useEffect(() => {
     const handleCallback = async () => {
       try {
         const accessToken = searchParams.get('access_token');
         const refreshToken = searchParams.get('refresh_token');
         const errorParam = searchParams.get('error');
-
+        const isNewUser = searchParams.get('is_new_user') === 'true';
         if (errorParam) {
           throw new Error(`Google OAuth error: ${errorParam}`);
         }
-
         if (!accessToken || !refreshToken) {
           throw new Error('Missing tokens in callback');
         }
-
         await establishSupabaseSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-
-        router.push('/dashboard');
+        router.push(isNewUser ? '/onboarding' : '/dashboard');
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
         setError(errorMessage);
@@ -38,10 +32,8 @@ function AuthCallbackContent() {
         }, 3000);
       }
     };
-
     handleCallback();
   }, [searchParams, router]);
-
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-surface">
@@ -54,7 +46,6 @@ function AuthCallbackContent() {
       </div>
     );
   }
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-surface">
       <div className="text-center">
@@ -64,7 +55,6 @@ function AuthCallbackContent() {
     </div>
   );
 }
-
 export default function AuthCallbackPage() {
   return (
     <Suspense
