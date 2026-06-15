@@ -55,7 +55,7 @@ const navItems = [
         ],
       },
       {
-        label: "Sessions",
+        label: "Meditation Sessions",
         href: "/sessions/history",
         icon: BookOpen,
         children: [
@@ -75,11 +75,11 @@ const navItems = [
         icon: BarChart3,
         children: [
           {
-            label: "Progress",
+            label: "Mental Strength Progress",
             href: "/progress",
           },
           {
-            label: "Insights",
+            label: "Job Hunting Insights",
             href: "/progress/insights",
           },
         ],
